@@ -1,8 +1,10 @@
 # Robot-Arm-Project
-CPS Group 21 - Paul the Octopus
-## System Architecture
 
-The interaction begins at the flag game board. After the player places two flag cards, the octopus shows a short thinking response through its LED eyes and tentacles, then points toward the predicted winner.
+**CPS Group 21 — Paul the Octopus**
+
+## 2. System Architecture
+
+The interaction begins at the flag game board. After the player places two flag cards, the octopus shows a short thinking response through its LED eyes and tentacles, then points towards the predicted winner.
 
 ```mermaid
 flowchart LR
@@ -18,22 +20,32 @@ flowchart LR
         H --> I[LED eyes and six motors]
     end
 
-    A -.triggers.-> D
-    I -.expresses.-> B
-    I -.performs.-> C
+    A -. triggers .-> D
+    I -. expresses .-> B
+    I -. performs .-> C
 ```
 
-Behind the interaction, the camera captures the two flags. Processing prepares the image data and sends it to Wekinator, where the machine-learning model predicts the match result. Wekinator continuously returns a class and its probabilities. Processing filters these predictions so that each round produces one stable command.
+Behind the interaction, the camera captures the two flags. Processing converts both image regions into pixel data and sends them to Wekinator. The machine-learning model continuously predicts one of four match results and returns the associated class probabilities. Processing then filters the frame-by-frame predictions into one stable result for each round.
 
-The confirmed class and the two highest probabilities are sent to Arduino through serial communication. The class determines the final pointing direction, while the difference between the two probabilities represents the model's confidence and affects the thinking behaviour.
+The confirmed class and the two highest probabilities are sent to Arduino through serial communication. The class determines the final pointing direction. The difference between the two probabilities represents the model's confidence and controls the thinking behaviour shown before the result.
 
-Arduino converts the decision into LED expressions and tentacle movements. The two tentacles use six motors in total. Each tentacle has one motor for base rotation, one for the main body, and one for the tip. Together, they perform the thinking, hesitation, and pointing movements.
+Arduino converts the decision into LED expressions and tentacle movements. The two tentacles use six motors in total. Each tentacle has one motor for base rotation, one for the main body, and one for the tip.
 
-The following sections explain each part of the system in more detail.
+### Component navigation
 
-## Software Design
+| Stage | Role | Detailed section |
+| --- | --- | --- |
+| Computer camera | Captures the left and right flag regions | [Camera Input and Image Preprocessing](#software-camera-input) |
+| Processing input sketch | Crops, downsamples, and sends 7,500 RGB values | [Camera Input and Image Preprocessing](#software-camera-input) |
+| Wekinator | Classifies the flag pair into one of four results | [Machine Learning](#machine-learning) |
+| Processing bridge | Receives predictions, controls each round, and sends one stable command | [Round-State Filtering](#software-round-filtering) |
+| OSC and serial links | Transfer data between Processing, Wekinator, and Arduino | [Communication Interfaces](#software-communication) |
+| Arduino | Converts the confirmed result and confidence values into behaviour | [Arduino Command Handling](#software-arduino) |
+| LEDs and motors | Express thinking and move the two tentacles | [Hardware Design](#hardware-design) |
 
-The system separates camera capture, machine learning, communication, and robot control into independent components. Each component can be tested separately.
+## 5. Software Design
+
+The software is divided into camera capture, machine learning, result filtering, communication, and robot control. Each component can be tested separately.
 
 ```text
 Camera
@@ -42,12 +54,14 @@ Processing: crop and downsample two flag images
   ↓  OSC /wek/inputs, port 6448
 Wekinator: four-class KNN model
   ↓  OSC /wek/outputs and /Match-Result, port 12000
-Processing: result filtering and serial bridge
+Processing: round-state filtering and serial bridge
   ↓  USB serial, 9600 baud
-Arduino: input validation and robot-arm control
+Arduino: input validation and robot control
 ```
 
-### Main components
+<a id="software-components"></a>
+
+### 5.1 Software Components
 
 | Component | File | Responsibility |
 | --- | --- | --- |
@@ -58,7 +72,9 @@ Arduino: input validation and robot-arm control
 
 The bridge without round-state filtering is stored in `processing_osc_to_arduino_backup/`. It can be used to test direct communication between Wekinator and Arduino.
 
-### Camera input
+<a id="software-camera-input"></a>
+
+### 5.2 Camera Input and Image Preprocessing
 
 The camera view contains two horizontal capture regions:
 
@@ -80,9 +96,11 @@ The two regions are combined into one OSC message:
 3,750 + 3,750 = 7,500 inputs
 ```
 
-Values 1–3,750 belong to A, and values 3,751–7,500 belong to B. Wekinator distinguishes the two images by their fixed positions in the input array.
+Values 1–3,750 belong to region A, and values 3,751–7,500 belong to region B. Wekinator distinguishes the images by their fixed positions in the input array.
 
-### Communication
+<a id="software-communication"></a>
+
+### 5.3 Communication Interfaces
 
 The camera sketch sends image data to Wekinator:
 
@@ -92,7 +110,7 @@ Port: 6448
 Values: 7,500 floats
 ```
 
-Wekinator returns:
+Wekinator returns the predicted class and class probabilities:
 
 ```text
 /wek/outputs    Predicted class
@@ -106,7 +124,7 @@ The Processing bridge sends one CSV line to Arduino:
 <class>,<top_probability>,<second_probability>
 ```
 
-Example:
+For example:
 
 ```text
 2,0.7426,0.1831
@@ -114,11 +132,13 @@ Example:
 
 This represents Class 2, with a top probability of 0.7426 and a second-place probability of 0.1831. Processing and Arduino both use a baud rate of 9600.
 
-### Round state control
+<a id="software-round-filtering"></a>
 
-Wekinator evaluates every camera frame, so small changes in lighting, position, or camera noise can make the result switch between classes. Sending every frame directly to Arduino could trigger repeated or conflicting movements.
+### 5.4 Round-State Filtering
 
-The Processing bridge uses the following state sequence:
+Wekinator evaluates every camera frame. Small changes in lighting, position, or camera noise can make the predicted class switch between frames. Sending every prediction directly to Arduino could therefore trigger repeated or conflicting movements.
+
+The Processing bridge uses the following round-state sequence:
 
 ```text
 Class 1 remains stable for 500 ms
@@ -133,20 +153,30 @@ Record predictions for 2 seconds
   ↓
 Select the most frequently detected class
   ↓
-Send one result
+Send one confirmed result
   ↓
 Lock until Class 1 is detected again
 ```
 
-During the two-second observation period, Processing counts the occurrences of Classes 2–4. The most frequent class becomes the final result. The bridge also averages the top and second-place probabilities from the samples associated with that class.
+During the two-second observation period, Processing counts the occurrences of Classes 2–4. The most frequently detected class becomes the final result. The bridge also averages the two highest probabilities from samples associated with that class.
 
 After sending the result, the bridge ignores further predictions until Class 1 remains stable again. Removing both flags therefore ends the current round and enables the next one.
 
-The current Arduino program also waits three seconds before moving. With both delays enabled, the robot responds about seven seconds after the first non-empty prediction.
+<a id="software-arduino"></a>
+
+### 5.5 Arduino Command Handling
+
+Arduino validates each serial message before starting a movement. The confirmed class selects the final pointing action, while the difference between the two probability values controls the confidence-dependent thinking behaviour.
+
+The current Arduino program also waits three seconds before moving. When this delay is used together with the two-second placement period and two-second observation period in Processing, the robot responds approximately seven seconds after the first non-empty prediction.
+
+<a id="machine-learning"></a>
 
 ## 6. Machine Learning
 
-### Problem definition
+<a id="ml-task"></a>
+
+### 6.1 Classification Task
 
 The project uses a four-class classifier:
 
@@ -161,7 +191,9 @@ The model maps a pair of flag images directly to a match result. It does not ide
 
 For matches with a winner, both left-right arrangements are recorded. If the winning flag is in region A, the sample is labelled Class 2. After swapping the flags, it is labelled Class 3. A draw remains Class 4 in both arrangements.
 
-### Training data
+<a id="ml-training-data"></a>
+
+### 6.2 Training Data
 
 When `Start Recording` is active, every captured frame becomes an independent training example. Each recording session contains about 30 frames, with a possible difference of one or two frames because recording is stopped manually.
 
@@ -177,17 +209,18 @@ The current dataset contains 14,070 examples:
 | Class 4 | 2,276 |
 | **Total** | **14,070** |
 
-Recording a static scene produces many nearly identical examples. This increases the dataset size but provides limited variation. When time allows, training should include changes in:
+Recording a static scene produces many nearly identical examples. This increases the dataset size while providing limited additional variation. A more diverse dataset should include changes in:
 
 - flag position;
 - camera distance;
-- lighting;
-- screen illumination;
+- lighting and screen illumination;
 - background and shadows.
 
 Both flags should remain fully inside their capture regions.
 
-### Model
+<a id="ml-model"></a>
+
+### 6.3 KNN Model
 
 Wekinator uses a K-Nearest Neighbours classifier:
 
@@ -199,32 +232,27 @@ The model finds the 101 closest training examples and predicts a class from thei
 
 A single recording produces about 30 highly similar frames. With a small K, one recording can dominate the local neighbourhood and produce probabilities close to 0% or 100%. Setting K above 30 is a practical way to reduce this effect, although it is not a mathematical requirement.
 
-K=101 is roughly equivalent to more than three 30-frame recording batches. It produces more cautious results when the nearest samples come from several recordings. A larger K cannot correct duplicated data, class imbalance, or missing lighting and position variations.
+K = 101 is roughly equivalent to more than three 30-frame recording batches. It can produce more cautious results when the nearest samples come from several recordings. A larger K cannot correct duplicated data, class imbalance, or missing lighting and position variations.
 
-### Understanding class probabilities
+<a id="ml-probabilities"></a>
 
-Wekinator’s class probabilities are based on the labels of nearby KNN examples. They are not calibrated probabilities and should not be interpreted as the real-world chance of a team winning.
+### 6.4 Interpreting Class Probabilities
 
-For a genuinely identical input, KNN should return the same result. If the probability changes while the scene appears still, the input pixels are usually changing because of camera noise, automatic exposure, shadows, or small movements. The model does not accumulate confidence over time.
+Wekinator's class probabilities are based on the labels of nearby KNN examples. They are not calibrated probabilities and should not be interpreted as the real-world chance of a team winning.
 
-The total number of examples in a class also does not guarantee that the class will win every prediction. KNN mainly depends on the examples closest to the current input.
+For an identical input, KNN should return the same result. If the probability changes while the scene appears still, the pixel values are usually changing because of camera noise, automatic exposure, shadows, or small movements. The model does not accumulate confidence over time.
 
-### Inference stabilisation
+The total number of examples in a class also does not guarantee that the class will win a prediction. KNN mainly depends on the examples closest to the current input.
 
-The model processes individual frames and has no built-in concept of a complete game round. The Processing bridge adds this temporal structure:
+Frame-level predictions are stabilised by Processing rather than by the model itself. See [Round-State Filtering](#software-round-filtering) for the complete timing and decision logic.
 
-1. Class 1 must appear before a new round can begin.
-2. The system waits two seconds for flag placement.
-3. It records predictions for two seconds and selects the most frequent class.
-4. It sends one result and ignores further predictions until Class 1 returns.
+<a id="ml-limitations"></a>
 
-Wekinator performs frame-level classification, Processing converts the predictions into one stable command, and Arduino validates the command before moving the robot arm.
-
-### Limitations
+### 6.5 Limitations and Future Improvements
 
 The model uses low-resolution RGB pixels, so lighting, reflections, shadows, background changes, and flag position can affect its output. It learns pixel similarity rather than flag identity, country information, or football rules.
 
-The dataset is imbalanced, and evaluation currently relies on live observation. There is no separate test set or confusion matrix. The displayed probabilities are suitable for interaction and motion control, but not as calibrated confidence scores or real match predictions.
+The dataset is imbalanced, and evaluation currently relies on live observation. There is no separate test set or confusion matrix. The displayed probabilities are useful for interaction and motion control, but they are not calibrated confidence scores or real match predictions.
 
 Possible improvements include:
 
