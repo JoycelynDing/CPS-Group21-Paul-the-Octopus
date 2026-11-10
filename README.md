@@ -2,6 +2,29 @@
 
 **CPS Group 21 — Paul the Octopus**
 
+## Table of Contents
+
+- [2. System Architecture](#system-architecture)
+- [4. Hardware and Arduino](#hardware-and-arduino)
+  - [4.1 Components](#hardware-components)
+  - [4.2 Arduino Code](#arduino-code)
+  - [4.3 Wiring](#wiring)
+  - [4.4 Power](#power)
+- [5. Software Design](#software-design)
+  - [5.1 Software Components](#software-components)
+  - [5.2 Camera Input and Image Preprocessing](#software-camera-input)
+  - [5.3 Communication Interfaces](#software-communication)
+  - [5.4 Round-State Filtering](#software-round-filtering)
+  - [5.5 Arduino Command Handling](#software-arduino)
+- [6. Machine Learning](#machine-learning)
+  - [6.1 Classification Task](#ml-task)
+  - [6.2 Training Data](#ml-training-data)
+  - [6.3 KNN Model](#ml-model)
+  - [6.4 Interpreting Class Probabilities](#ml-probabilities)
+  - [6.5 Limitations and Future Improvements](#ml-limitations)
+
+<a id="system-architecture"></a>
+
 ## 2. System Architecture
 
 The interaction begins at the flag game board. After the player places two flag cards, the octopus shows a short thinking response through its LED eyes and tentacles, then points towards the predicted winner.
@@ -43,7 +66,9 @@ Arduino converts the decision into LED expressions and tentacle movements. The t
 | Arduino | Converts the confirmed result and confidence values into behaviour | [Arduino Command Handling](#software-arduino) |
 | LEDs and motors | Express thinking and move the two tentacles | [Hardware Design](#hardware-design) |
 
-## 4 Hardware and Arduino
+<a id="hardware-and-arduino"></a>
+
+## 4. Hardware and Arduino
 
 The laptop looks at two flags and sends one line to Nano 1. Nano 1 paints both eyes, moves one tentacle, and tells Nano 2 which way to point the other tentacle.
 
@@ -51,7 +76,9 @@ The bench test set the motor numbers. The shaft turned with 4 milliseconds betwe
 
 Open the `Run` folder and follow this order. Upload `Nano1_Eyes_And_TentacleA` to the Nano on the laptop, then `Nano2_TentacleB` to the second board. Board type is Arduino Nano Every, speed 9600. Then open `Run/Wekinator/Wekinator FlagMatch AB.app` from that folder, press Start listening, and press Run. Run `Camera_to_Wekinator_40x30`, then `Wekinator_to_Arduino`. Do not move the Wekinator app away from the `FlagMatch_AB_4Class` folder. Do not open Serial Monitor while the bridge sketch is running.
 
-### 4.1 Component
+<a id="hardware-components"></a>
+
+### 4.1 Components
 
 Two Arduino Nano Every boards. One board cannot drive six steppers. Each 28BYJ-48 needs four signal wires, so the eyes and tentacle A are on the laptop board and tentacle B is on the second board.
 
@@ -61,7 +88,9 @@ Six 28BYJ-48 motors, 5 V, each on its own ULN2003 board. Three motors pull one t
 
 One 5 V supply of at least 3 A for the drivers and the LEDs. Two USB cables. One signal wire from Nano 1 D4 to Nano 2 D2, and a ground wire between the Nanos.
 
-### 4.2 Arduino code
+<a id="arduino-code"></a>
+
+### 4.2 Arduino Code
 
 ```mermaid
 flowchart LR
@@ -81,6 +110,8 @@ If the best chance leads by 0.35 or more, the point happens at once and the ring
 Nano 1 prints the line it understood: `RECEIVED class=2 top=0.9900 second=0.0100 pose=L`. The letter is what Nano 2 receives. `L` and `R` are a full point. `l` and `r` are the small lean. `S` is a shrug. `T` is the tie. `N` is rest. Nano 2 prints `RECEIVED letter=L`.
 
 `POINT` and `STEP_MS` are copied in both sketches. Change them in both files or the tentacles will not match. A point winds one string 400 steps, lets the other side out 150, and lifts 200. Power on with the tentacles already in the middle. That pose is step 0.
+
+<a id="wiring"></a>
 
 ### 4.3 Wiring
 
@@ -139,6 +170,8 @@ The lift uses D12, A0, A1, A2. D12 is IN1, A0 is IN2, A1 is IN3, A2 is IN4.
 
 A3, A4, and A5 on Nano 2 stay empty. GND goes to the same shared ground as Nano 1.
 
+<a id="power"></a>
+
 ### 4.4 Power
 
 ```mermaid
@@ -162,6 +195,8 @@ Use the 5 V supply for every ULN2003 VCC pin and every LED 5 V pin. Nano 1 takes
 Unplug the motor supply before you upload. A motor loading the USB port makes the upload fail.
 
 
+
+<a id="software-design"></a>
 
 ## 5. Software Design
 
@@ -222,6 +257,10 @@ Values 1–3,750 belong to region A, and values 3,751–7,500 belong to region B
 
 ### 5.3 Communication Interfaces
 
+![Processing camera-input setup](Image/11.jpg)
+
+*Figure 5.1. The Processing sketch captures two flag regions and sends 7,500 RGB values to Wekinator through OSC port 6448.*
+
 The camera sketch sends image data to Wekinator:
 
 ```text
@@ -229,6 +268,10 @@ Address: /wek/inputs
 Port: 6448
 Values: 7,500 floats
 ```
+
+![Wekinator project and OSC input settings](Image/5.jpg)
+
+*Figure 5.2. The Wekinator project listens for camera input on port 6448 and runs the four-class model.*
 
 Wekinator returns the predicted class and class probabilities:
 
@@ -311,25 +354,39 @@ The model maps a pair of flag images directly to a match result. It does not ide
 
 For matches with a winner, both left-right arrangements are recorded. If the winning flag is in region A, the sample is labelled Class 2. After swapping the flags, it is labelled Class 3. A draw remains Class 4 in both arrangements.
 
+<img src="Image/2.jpg" alt="How the left-right classification structure supports unseen matchups" width="513">
+
+*Figure 6.1. The same flag contributes to Class 2 or Class 3 depending on whether it appears on the left or right, allowing the model to infer previously unseen pairings.*
+
 <a id="ml-training-data"></a>
 
 ### 6.2 Training Data
 
+Before collecting the full dataset, we trained a small demo model using a limited set of known matchups. We then tested it with a flag pairing that had not appeared in the demo training set. The model followed the expected left-right winner structure, confirming that the proposed image-classification approach was viable before full-scale data collection.
+
+![Initial demo training and unseen-matchup test](Image/3.jpg)
+
+*Figure 6.2. The initial demo verified the camera input, class structure, and ability to generalise the winner direction to an unseen flag pairing.*
+
 When `Start Recording` is active, every captured frame becomes an independent training example. Each recording session contains about 30 frames, with a possible difference of one or two frames because recording is stopped manually.
 
-Using a similar number of frames for each matchup prevents one recorded matchup from contributing much more data than another. It does not make the four output classes equal because the dataset contains different numbers of wins and draws.
+Using a similar number of frames for each matchup prevents one recorded matchup from contributing much more data than another. To reduce near-duplicate static frames, each block of approximately 30 examples was later reduced to five representative examples. The classes remain imbalanced because the source match records contain different numbers of wins and draws.
 
-The current dataset contains 14,070 examples:
+![Match records used to define the training labels](Image/4.jpg)
+
+*Figure 6.3. Match records were converted into left-win, right-win, and draw labels for the flag-pair training data.*
+
+The reduced dataset contains 2,370 examples:
 
 | Class | Examples |
 | --- | ---: |
 | Class 1 | 30 |
-| Class 2 | 5,887 |
-| Class 3 | 5,877 |
-| Class 4 | 2,276 |
-| **Total** | **14,070** |
+| Class 2 | 971 |
+| Class 3 | 992 |
+| Class 4 | 377 |
+| **Total** | **2,370** |
 
-Recording a static scene produces many nearly identical examples. This increases the dataset size while providing limited additional variation. A more diverse dataset should include changes in:
+Recording a static scene still produces very similar examples. More useful variation comes from changes in:
 
 - flag position;
 - camera distance;
@@ -345,14 +402,14 @@ Both flags should remain fully inside their capture regions.
 Wekinator uses a K-Nearest Neighbours classifier:
 
 ```text
-K = 101
+K = 17
 ```
 
-The model finds the 101 closest training examples and predicts a class from their labels.
+The model finds the 17 closest training examples and predicts one of Classes 1–4 from their labels.
 
-A single recording produces about 30 highly similar frames. With a small K, one recording can dominate the local neighbourhood and produce probabilities close to 0% or 100%. Setting K above 30 is a practical way to reduce this effect, although it is not a mathematical requirement.
+A single recording originally produced about 30 highly similar frames. After retaining five representative examples from each block, `K = 17` allows the neighbourhood to extend beyond one retained recording block while remaining sensitive to visually similar flag pairs.
 
-K = 101 is roughly equivalent to more than three 30-frame recording batches. It can produce more cautious results when the nearest samples come from several recordings. A larger K cannot correct duplicated data, class imbalance, or missing lighting and position variations.
+The value of K can reduce the influence of one small cluster, but it cannot correct class imbalance or missing lighting and position variations. Frame-level instability is therefore handled separately by the Processing round-state filter.
 
 <a id="ml-probabilities"></a>
 
