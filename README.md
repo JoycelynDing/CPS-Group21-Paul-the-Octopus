@@ -43,6 +43,126 @@ Arduino converts the decision into LED expressions and tentacle movements. The t
 | Arduino | Converts the confirmed result and confidence values into behaviour | [Arduino Command Handling](#software-arduino) |
 | LEDs and motors | Express thinking and move the two tentacles | [Hardware Design](#hardware-design) |
 
+## 4 Hardware and Arduino
+
+The laptop looks at two flags and sends one line to Nano 1. Nano 1 paints both eyes, moves one tentacle, and tells Nano 2 which way to point the other tentacle.
+
+The bench test set the motor numbers. The shaft turned with 4 milliseconds between steps and a 400 step pull. Faster steps made the motor buzz. A 12 millisecond gap only clicked. The sketches use those working numbers.
+
+Open the `Run` folder and follow this order. Upload `Nano1_Eyes_And_TentacleA` to the Nano on the laptop, then `Nano2_TentacleB` to the second board. Board type is Arduino Nano Every, speed 9600. Then open `Run/Wekinator/Wekinator FlagMatch AB.app` from that folder, press Start listening, and press Run. Run `Camera_to_Wekinator_40x30`, then `Wekinator_to_Arduino`. Do not move the Wekinator app away from the `FlagMatch_AB_4Class` folder. Do not open Serial Monitor while the bridge sketch is running.
+
+### 4.1 Component
+
+Two Arduino Nano Every boards. One board cannot drive six steppers. Each 28BYJ-48 needs four signal wires, so the eyes and tentacle A are on the laptop board and tentacle B is on the second board.
+
+Two eyes. Each eye is a 12-LED WS2812B ring and a 7-LED WS2812B pupil.
+
+Six 28BYJ-48 motors, 5 V, each on its own ULN2003 board. Three motors pull one tentacle: left string, right string, and lift.
+
+One 5 V supply of at least 3 A for the drivers and the LEDs. Two USB cables. One signal wire from Nano 1 D4 to Nano 2 D2, and a ground wire between the Nanos.
+
+### 4.2 Arduino code
+
+```mermaid
+flowchart LR
+  laptop[Laptop] -->|USB serial 9600| nano1[Nano 1]
+  nano1 -->|one letter on D4| nano2[Nano 2]
+  nano1 --> eyes[Both eyes]
+  nano1 --> tentacleA[Tentacle A]
+  nano2 --> tentacleB[Tentacle B]
+```
+
+The laptop sends `2,0.9900,0.0100`. That is the class, the best chance, and the next chance.
+
+Class 1 is an empty stand, so the robot rests. Class 2 points left. Class 3 points right. Class 4 is a tie, so both tentacles shrug and the pupils look up.
+
+If the best chance leads by 0.35 or more, the point happens at once and the rings go green. Under 0.12, the robot shrugs and rolls its pupils. In between, it leans for two seconds with amber rings, then points.
+
+Nano 1 prints the line it understood: `RECEIVED class=2 top=0.9900 second=0.0100 pose=L`. The letter is what Nano 2 receives. `L` and `R` are a full point. `l` and `r` are the small lean. `S` is a shrug. `T` is the tie. `N` is rest. Nano 2 prints `RECEIVED letter=L`.
+
+`POINT` and `STEP_MS` are copied in both sketches. Change them in both files or the tentacles will not match. A point winds one string 400 steps, lets the other side out 150, and lifts 200. Power on with the tentacles already in the middle. That pose is step 0.
+
+### 4.3 Wiring
+
+Every motor uses the same plug. This order is the one that turned the shaft. The four signal colours go to the ULN2003 inputs. Red stays on that driver and never touches a Nano pin. If a motor only buzzes, swap pink and yellow on that driver and leave the Nano pins alone.
+
+```mermaid
+flowchart LR
+  blue[Blue wire] --> in1[IN1]
+  pink[Pink wire] --> in2[IN2]
+  yellow[Yellow wire] --> in3[IN3]
+  orange[Orange wire] --> in4[IN4]
+  red[Red wire] --> vcc[Driver 5 V, not a Nano pin]
+```
+
+Each ULN2003 board has four jobs. IN1, IN2, IN3, IN4 take the four Nano pins for that motor, in that order. The motor socket takes the five-wire plug. The VCC pin takes 5 V from the external supply. The GND pin joins the shared ground. Do not feed a motor from a Nano 5 V pin.
+
+Each LED board has four pads: DIN, DOUT, 5 V, and GND. Solder the Nano data wire to DIN only. Leave DOUT empty. The four boards are not chained, because each one already has its own data pin. 5 V and GND come from the supply in the next section, the same rails as the drivers.
+
+```mermaid
+flowchart LR
+  laptop[Laptop USB] -->|D0 and D1, 9600| nano1[Nano 1]
+  nano1 -->|D6 DIN| ringA[Eye A ring, 12 LEDs]
+  nano1 -->|D7 DIN| pupilA[Eye A pupil, 7 LEDs]
+  nano1 -->|D2 DIN| ringB[Eye B ring, 12 LEDs]
+  nano1 -->|D3 DIN| pupilB[Eye B pupil, 7 LEDs]
+  nano1 -->|D4 transmit| nano2rx[Nano 2 D2 receive]
+```
+
+Nano 1 is the board on the laptop USB cable. D0 and D1 are that cable. Do not put a motor or an LED on them. The bridge sketch owns this port, so Serial Monitor has to be closed.
+
+Eye A is the first pair. The 12-LED ring data pad goes to D6. The 7-LED pupil data pad goes to D7. Eye B is the second pair. Its ring goes to D2 and its pupil goes to D3. One data wire each. No clock wire.
+
+The link to the other board is one wire: Nano 1 D4 to Nano 2 D2. D4 sends. D2 listens. Speed is 9600, same as the USB port, but it is a separate wire, not the USB cable. D5 on Nano 1 is the spare receive pin the library asks for. Leave it empty. The sketch pulls it high so it does not float. The two GND pins must be joined or this letter never arrives.
+
+Tentacle A is the three motors on Nano 1. Count the pins as IN1, IN2, IN3, IN4, which is blue, pink, yellow, orange.
+
+The left string uses D8, D9, D10, D11. D8 is IN1, D9 is IN2, D10 is IN3, D11 is IN4.
+
+The right string uses D12, D13, A0, A1. D12 is IN1, D13 is IN2, A0 is IN3, A1 is IN4. D13 is also the onboard L LED, so that small lamp flickers while the right string moves. The power LED does not. That flicker is normal.
+
+The lift uses A2, A3, A4, A5. A2 is IN1, A3 is IN2, A4 is IN3, A5 is IN4.
+
+Nothing else on Nano 1 is used. A6 and A7 stay empty. The 5 V pin stays empty. VIN stays empty. GND goes to the shared ground.
+
+Nano 2 has no eyes. Its USB socket is only power, plus a debug print if you open Serial Monitor on that board alone. D0 and D1 belong to that socket. Do not share them with Nano 1.
+
+D2 is the listen pin. It takes the wire from Nano 1 D4. D3 is the spare transmit pin. Leave it empty. There is no wire on D3.
+
+Tentacle B uses the same colour order.
+
+The left string uses D4, D5, D6, D7. D4 is IN1, D5 is IN2, D6 is IN3, D7 is IN4. These are motor pins on this board. They are not the link. The link is only D2.
+
+The right string uses D8, D9, D10, D11. D8 is IN1, D9 is IN2, D10 is IN3, D11 is IN4.
+
+The lift uses D12, A0, A1, A2. D12 is IN1, A0 is IN2, A1 is IN3, A2 is IN4.
+
+A3, A4, and A5 on Nano 2 stay empty. GND goes to the same shared ground as Nano 1.
+
+### 4.4 Power
+
+```mermaid
+flowchart TB
+  supply[5 V supply, 3 A or more]
+  supply --> drivers[Six ULN2003 boards]
+  supply --> leds[Four LED boards]
+  usb1[Laptop USB] --> nano1[Nano 1]
+  usb2[USB charger] --> nano2[Nano 2]
+  supply --- gnd[One shared ground]
+  nano1 --- gnd
+  nano2 --- gnd
+  drivers --- gnd
+  leds --- gnd
+```
+
+Do not power the motors from a Nano 5 V pin. One motor can be tried from USB. Six cannot. The coils stay on after a move so the string stays tight, and each motor can draw a few hundred milliamps while it holds.
+
+Use the 5 V supply for every ULN2003 VCC pin and every LED 5 V pin. Nano 1 takes power from the laptop USB cable. Nano 2 takes power from a second USB cable. Tie every ground together: the supply, both Nanos, all six drivers, and all four LED boards. If a ground is missing, the D4 signal does nothing.
+
+Unplug the motor supply before you upload. A motor loading the USB port makes the upload fail.
+
+
+
 ## 5. Software Design
 
 The software is divided into camera capture, machine learning, result filtering, communication, and robot control. Each component can be tested separately.
