@@ -1,0 +1,2 @@
+Wekinator[[:space:]]Project/FlagMatch_AB_4Class/current/currentData.arff filter=lfs diff=lfs merge=lfs -text
+Wekinator[[:space:]]Project/FlagMatch_AB_4Class/current/models/* filter=lfs diff=lfs merge=lfs -text

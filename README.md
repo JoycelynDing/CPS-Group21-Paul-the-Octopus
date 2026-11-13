@@ -354,7 +354,7 @@ The model maps a pair of flag images directly to a match result. It does not ide
 
 For matches with a winner, both left-right arrangements are recorded. If the winning flag is in region A, the sample is labelled Class 2. After swapping the flags, it is labelled Class 3. A draw remains Class 4 in both arrangements.
 
-<img src="Image/2.jpg" alt="How the left-right classification structure supports unseen matchups" width="513">
+![How the left-right classification structure supports unseen matchups](Image/2_half.jpg)
 
 *Figure 6.1. The same flag contributes to Class 2 or Class 3 depending on whether it appears on the left or right, allowing the model to infer previously unseen pairings.*
 
