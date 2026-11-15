@@ -5,10 +5,11 @@
 ![Paul the Octopus prototype](Image/paul-the-octopus-small.jpg)
 
 ## Table of Contents
-
+- [1. Project Overview](#project-overview)
 - [2. System Architecture](#system-architecture)
+- [3. Machenism](#machenism)
 - [4. Hardware and Arduino](#hardware-and-arduino)
-  - [4.1 Components](#hardware-components)
+  - [4.1 Components needed](#hardware-components)
   - [4.2 Arduino Code](#arduino-code)
   - [4.3 Wiring](#wiring)
   - [4.4 Power](#power)
@@ -24,6 +25,9 @@
   - [6.3 KNN Model](#ml-model)
   - [6.4 Interpreting Class Probabilities](#ml-probabilities)
   - [6.5 Limitations and Future Improvements](#ml-limitations)
+
+<a id="project-overview"></a>
+## 1. Project Overview
 
 <a id="system-architecture"></a>
 
@@ -67,6 +71,9 @@ One Arduino Nano Every converts the decision into LED expressions and motor move
 | OSC and serial links | Transfer data between Processing, Wekinator, and Arduino | [Communication Interfaces](#software-communication) |
 | Arduino | Times flag placement, votes on the result, and converts confidence into behaviour | [Arduino Command Handling](#software-arduino) |
 | LEDs and motors | Express thinking and perform the two-motor result action | [Hardware and Arduino](#hardware-and-arduino) |
+
+<a id="machenism"></a>
+## 3. Machenism
 
 <a id="hardware-and-arduino"></a>
 
