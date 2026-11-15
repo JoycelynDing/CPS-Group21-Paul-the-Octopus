@@ -1,6 +1,8 @@
-# Robot-Arm-Project
+# Paul the Octopus
 
-**CPS Group 21 — Paul the Octopus**
+**CPS Group 21**
+
+![Paul the Octopus prototype](Image/paul-the-octopus-small.jpg)
 
 ## Table of Contents
 
@@ -38,9 +40,9 @@ flowchart LR
     subgraph Backstage[System process]
         D[Computer camera] --> E[Processing image input]
         E --> F[Wekinator machine learning]
-        F --> G[Processing result filter]
-        G -->|Serial| H[Arduino]
-        H --> I[LED eyes and six motors]
+        F --> G[Processing round gate and serial bridge]
+        G -->|Serial| H[Arduino timing, voting, and control]
+        H --> I[Two LED rings and two motors]
     end
 
     A -. triggers .-> D
@@ -48,11 +50,11 @@ flowchart LR
     I -. performs .-> C
 ```
 
-Behind the interaction, the camera captures the two flags. Processing converts both image regions into pixel data and sends them to Wekinator. The machine-learning model continuously predicts one of four match results and returns the associated class probabilities. Processing then filters the frame-by-frame predictions into one stable result for each round.
+Behind the interaction, the camera captures the two flags. Processing converts both image regions into pixel data and sends them to Wekinator. The machine-learning model continuously predicts one of four match results and returns the associated class probabilities. The Processing bridge uses a stable Class 1 to arm each round, then forwards the live predictions to Arduino every 100 ms.
 
-The confirmed class and the two highest probabilities are sent to Arduino through serial communication. The class determines the final pointing direction. The difference between the two probabilities represents the model's confidence and controls the thinking behaviour shown before the result.
+Arduino owns the decision timing. After the first Class 2–4 prediction, it allows four seconds for flag placement and then records predictions for two seconds. The most frequently received class determines the final action. The current firmware uses the highest probability—not the difference between the two highest probabilities—to select the thinking behaviour. The second probability is still transmitted and recorded for reference.
 
-Arduino converts the decision into LED expressions and tentacle movements. The two tentacles use six motors in total. Each tentacle has one motor for base rotation, one for the main body, and one for the tip.
+One Arduino Nano Every converts the decision into LED expressions and motor movements. It controls two 12-LED rings and two stepper motors directly.
 
 ### Component navigation
 
@@ -61,32 +63,32 @@ Arduino converts the decision into LED expressions and tentacle movements. The t
 | Computer camera | Captures the left and right flag regions | [Camera Input and Image Preprocessing](#software-camera-input) |
 | Processing input sketch | Crops, downsamples, and sends 7,500 RGB values | [Camera Input and Image Preprocessing](#software-camera-input) |
 | Wekinator | Classifies the flag pair into one of four results | [Machine Learning](#machine-learning) |
-| Processing bridge | Receives predictions, controls each round, and sends one stable command | [Round-State Filtering](#software-round-filtering) |
+| Processing bridge | Arms each round from Class 1 and forwards live predictions to Arduino | [Round-State Filtering](#software-round-filtering) |
 | OSC and serial links | Transfer data between Processing, Wekinator, and Arduino | [Communication Interfaces](#software-communication) |
-| Arduino | Converts the confirmed result and confidence values into behaviour | [Arduino Command Handling](#software-arduino) |
-| LEDs and motors | Express thinking and move the two tentacles | [Hardware Design](#hardware-design) |
+| Arduino | Times flag placement, votes on the result, and converts confidence into behaviour | [Arduino Command Handling](#software-arduino) |
+| LEDs and motors | Express thinking and perform the two-motor result action | [Hardware and Arduino](#hardware-and-arduino) |
 
 <a id="hardware-and-arduino"></a>
 
 ## 4. Hardware and Arduino
 
-The laptop looks at two flags and sends one line to Nano 1. Nano 1 paints both eyes, moves one tentacle, and tells Nano 2 which way to point the other tentacle.
+The laptop sends one CSV line at a time to a single Arduino Nano Every through USB serial. The Nano controls both LED rings and both stepper motors; there is no second Arduino or board-to-board serial link in the current system.
 
-The bench test set the motor numbers. The shaft turned with 4 milliseconds between steps and a 400 step pull. Faster steps made the motor buzz. A 12 millisecond gap only clicked. The sketches use those working numbers.
+The current sketch uses a 4 ms step interval for Motor 1 and a 3 ms interval for Motor 2. Class 2 moves Motor 1 by 350 steps in one direction, while Class 3 moves it by 230 steps in the opposite direction. Motor 2 performs two cycles of 1,400 steps up and 600 steps down for an accepted result.
 
-Open the `Run` folder and follow this order. Upload `Nano1_Eyes_And_TentacleA` to the Nano on the laptop, then `Nano2_TentacleB` to the second board. Board type is Arduino Nano Every, speed 9600. Then open `Run/Wekinator/Wekinator FlagMatch AB.app` from that folder, press Start listening, and press Run. Run `Camera_to_Wekinator_40x30`, then `Wekinator_to_Arduino`. Do not move the Wekinator app away from the `FlagMatch_AB_4Class` folder. Do not open Serial Monitor while the bridge sketch is running.
+Upload `Arduino Code/Nano2_TentacleB_motor_test/Nano2_TentacleB_motor_test.ino` to the Nano Every. Despite the legacy filename, this is the current single-board sketch. Open `Wekinator Project/FlagMatch_AB_4Class/FlagMatch_AB_4Class.wekproj` with the installed Wekinator application, start listening on port 6448, and run the model. Then run `Processing Code/Camera_to_Wekinator_2x25x50/Camera_to_Wekinator_2x25x50.pde`, followed by `Processing Code/processing_osc_to_arduino/processing_osc_to_arduino.pde`. Close Arduino Serial Monitor before starting the Processing bridge because both programs cannot use the same USB serial port simultaneously.
 
 <a id="hardware-components"></a>
 
 ### 4.1 Components
 
-Two Arduino Nano Every boards. One board cannot drive six steppers. Each 28BYJ-48 needs four signal wires, so the eyes and tentacle A are on the laptop board and tentacle B is on the second board.
+The current hardware uses:
 
-Two eyes. Each eye is a 12-LED WS2812B ring and a 7-LED WS2812B pupil.
-
-Six 28BYJ-48 motors, 5 V, each on its own ULN2003 board. Three motors pull one tentacle: left string, right string, and lift.
-
-One 5 V supply of at least 3 A for the drivers and the LEDs. Two USB cables. One signal wire from Nano 1 D4 to Nano 2 D2, and a ground wire between the Nanos.
+- one Arduino Nano Every connected to the laptop by USB;
+- two 28BYJ-48 5 V stepper motors, each with its own ULN2003 driver board;
+- two 12-LED WS2812B rings;
+- one external regulated 5 V supply for the motors and LED rings; and
+- one shared ground between the external supply and the Nano.
 
 <a id="arduino-code"></a>
 
@@ -94,81 +96,39 @@ One 5 V supply of at least 3 A for the drivers and the LEDs. Two USB cables. One
 
 ```mermaid
 flowchart LR
-  laptop[Laptop] -->|USB serial 9600| nano1[Nano 1]
-  nano1 -->|one letter on D4| nano2[Nano 2]
-  nano1 --> eyes[Both eyes]
-  nano1 --> tentacleA[Tentacle A]
-  nano2 --> tentacleB[Tentacle B]
+  laptop[Laptop] -->|USB serial 9600| nano[Arduino Nano Every]
+  nano --> ring1[LED ring 1]
+  nano --> ring2[LED ring 2]
+  nano --> motor1[Motor 1]
+  nano --> motor2[Motor 2]
 ```
 
 The laptop sends `2,0.9900,0.0100`. That is the class, the best chance, and the next chance.
 
-Class 1 is an empty stand, so the robot rests. Class 2 points left. Class 3 points right. Class 4 is a tie, so both tentacles shrug and the pupils look up.
+Class 1 arms or resets the round. Class 2 moves Motor 1 in one direction, Class 3 moves it in the opposite direction, and Class 4 leaves Motor 1 centred. For an accepted result with a top probability of at least 0.4, Motor 2 then performs two up-and-down cycles. A result below 0.4 stops after the unknown gesture without running the final motor action.
 
-If the best chance leads by 0.35 or more, the point happens at once and the rings go green. Under 0.12, the robot shrugs and rolls its pupils. In between, it leans for two seconds with amber rings, then points.
+The current firmware uses the highest probability directly. Above 0.8, it performs the result action immediately. From 0.6 to 0.8, the eyes complete three laps before the result. From 0.4 to 0.6, the eyes complete five laps while Motor 1 sways slowly. Below 0.4, the robot performs the unknown gesture and does not continue to the result action. For the first three ranges, the rings turn green before the motor action.
 
-Nano 1 prints the line it understood: `RECEIVED class=2 top=0.9900 second=0.0100 pose=L`. The letter is what Nano 2 receives. `L` and `R` are a full point. `l` and `r` are the small lean. `S` is a shrug. `T` is the tie. `N` is rest. Nano 2 prints `RECEIVED letter=L`.
-
-`POINT` and `STEP_MS` are copied in both sketches. Change them in both files or the tentacles will not match. A point winds one string 400 steps, lets the other side out 150, and lifts 200. Power on with the tentacles already in the middle. That pose is step 0.
+The Nano reports its state through the same USB serial connection. Important messages include `WAITING_FOR_ARM`, `ARMED`, `PLACEMENT 4s`, `OBSERVING 2s`, `LOCKED`, `DECISION`, `DONE`, and `CANCELLED false trigger`. Processing uses `LOCKED` and `DONE` to coordinate the round gate.
 
 <a id="wiring"></a>
 
 ### 4.3 Wiring
 
-Every motor uses the same plug. This order is the one that turned the shaft. The four signal colours go to the ULN2003 inputs. Red stays on that driver and never touches a Nano pin. If a motor only buzzes, swap pink and yellow on that driver and leave the Nano pins alone.
-
 ```mermaid
 flowchart LR
-  blue[Blue wire] --> in1[IN1]
-  pink[Pink wire] --> in2[IN2]
-  yellow[Yellow wire] --> in3[IN3]
-  orange[Orange wire] --> in4[IN4]
-  red[Red wire] --> vcc[Driver 5 V, not a Nano pin]
+  laptop[Laptop USB] -->|Serial 9600| nano[Arduino Nano Every]
+  nano -->|D7 D8 D9 D10| motor1[Motor 1 ULN2003 IN1-IN4]
+  nano -->|D3 D4 D5 D6| motor2[Motor 2 ULN2003 IN1-IN4]
+  nano -->|D11 DIN| ring1[LED ring 1, 12 LEDs]
+  nano -->|D13 DIN| ring2[LED ring 2, 12 LEDs]
 ```
 
-Each ULN2003 board has four jobs. IN1, IN2, IN3, IN4 take the four Nano pins for that motor, in that order. The motor socket takes the five-wire plug. The VCC pin takes 5 V from the external supply. The GND pin joins the shared ground. Do not feed a motor from a Nano 5 V pin.
+Motor 1 uses Nano pins D7, D8, D9, and D10 in ULN2003 IN1-to-IN4 order. Motor 2 uses D3, D4, D5, and D6. Each motor remains connected to its own ULN2003 motor socket; the driver VCC and GND connect to the external 5 V supply.
 
-Each LED board has four pads: DIN, DOUT, 5 V, and GND. Solder the Nano data wire to DIN only. Leave DOUT empty. The four boards are not chained, because each one already has its own data pin. 5 V and GND come from the supply in the next section, the same rails as the drivers.
+LED ring 1 receives data on D11 and LED ring 2 receives data on D13. Each ring has 12 WS2812B LEDs. Connect each data wire to `DIN`, not `DOUT`. D13 is also connected to the Nano's onboard LED, so the onboard lamp may flicker when the second ring updates.
 
-```mermaid
-flowchart LR
-  laptop[Laptop USB] -->|D0 and D1, 9600| nano1[Nano 1]
-  nano1 -->|D6 DIN| ringA[Eye A ring, 12 LEDs]
-  nano1 -->|D7 DIN| pupilA[Eye A pupil, 7 LEDs]
-  nano1 -->|D2 DIN| ringB[Eye B ring, 12 LEDs]
-  nano1 -->|D3 DIN| pupilB[Eye B pupil, 7 LEDs]
-  nano1 -->|D4 transmit| nano2rx[Nano 2 D2 receive]
-```
-
-Nano 1 is the board on the laptop USB cable. D0 and D1 are that cable. Do not put a motor or an LED on them. The bridge sketch owns this port, so Serial Monitor has to be closed.
-
-Eye A is the first pair. The 12-LED ring data pad goes to D6. The 7-LED pupil data pad goes to D7. Eye B is the second pair. Its ring goes to D2 and its pupil goes to D3. One data wire each. No clock wire.
-
-The link to the other board is one wire: Nano 1 D4 to Nano 2 D2. D4 sends. D2 listens. Speed is 9600, same as the USB port, but it is a separate wire, not the USB cable. D5 on Nano 1 is the spare receive pin the library asks for. Leave it empty. The sketch pulls it high so it does not float. The two GND pins must be joined or this letter never arrives.
-
-Tentacle A is the three motors on Nano 1. Count the pins as IN1, IN2, IN3, IN4, which is blue, pink, yellow, orange.
-
-The left string uses D8, D9, D10, D11. D8 is IN1, D9 is IN2, D10 is IN3, D11 is IN4.
-
-The right string uses D12, D13, A0, A1. D12 is IN1, D13 is IN2, A0 is IN3, A1 is IN4. D13 is also the onboard L LED, so that small lamp flickers while the right string moves. The power LED does not. That flicker is normal.
-
-The lift uses A2, A3, A4, A5. A2 is IN1, A3 is IN2, A4 is IN3, A5 is IN4.
-
-Nothing else on Nano 1 is used. A6 and A7 stay empty. The 5 V pin stays empty. VIN stays empty. GND goes to the shared ground.
-
-Nano 2 has no eyes. Its USB socket is only power, plus a debug print if you open Serial Monitor on that board alone. D0 and D1 belong to that socket. Do not share them with Nano 1.
-
-D2 is the listen pin. It takes the wire from Nano 1 D4. D3 is the spare transmit pin. Leave it empty. There is no wire on D3.
-
-Tentacle B uses the same colour order.
-
-The left string uses D4, D5, D6, D7. D4 is IN1, D5 is IN2, D6 is IN3, D7 is IN4. These are motor pins on this board. They are not the link. The link is only D2.
-
-The right string uses D8, D9, D10, D11. D8 is IN1, D9 is IN2, D10 is IN3, D11 is IN4.
-
-The lift uses D12, A0, A1, A2. D12 is IN1, A0 is IN2, A1 is IN3, A2 is IN4.
-
-A3, A4, and A5 on Nano 2 stay empty. GND goes to the same shared ground as Nano 1.
+The Nano communicates with Processing through its USB serial connection at 9600 baud. Keep Serial Monitor closed while the Processing bridge is running. Connect the Nano ground, both ULN2003 grounds, both LED grounds, and the external-supply ground together.
 
 <a id="power"></a>
 
@@ -176,21 +136,19 @@ A3, A4, and A5 on Nano 2 stay empty. GND goes to the same shared ground as Nano 
 
 ```mermaid
 flowchart TB
-  supply[5 V supply, 3 A or more]
-  supply --> drivers[Six ULN2003 boards]
-  supply --> leds[Four LED boards]
-  usb1[Laptop USB] --> nano1[Nano 1]
-  usb2[USB charger] --> nano2[Nano 2]
+  supply[External regulated 5 V supply]
+  supply --> drivers[Two ULN2003 boards]
+  supply --> leds[Two 12-LED rings]
+  usb[Laptop USB] --> nano[Arduino Nano Every]
   supply --- gnd[One shared ground]
-  nano1 --- gnd
-  nano2 --- gnd
+  nano --- gnd
   drivers --- gnd
   leds --- gnd
 ```
 
-Do not power the motors from a Nano 5 V pin. One motor can be tried from USB. Six cannot. The coils stay on after a move so the string stays tight, and each motor can draw a few hundred milliamps while it holds.
+Do not power either motor from the Nano 5 V pin. Use the external 5 V supply for both ULN2003 VCC pins and both LED rings.
 
-Use the 5 V supply for every ULN2003 VCC pin and every LED 5 V pin. Nano 1 takes power from the laptop USB cable. Nano 2 takes power from a second USB cable. Tie every ground together: the supply, both Nanos, all six drivers, and all four LED boards. If a ground is missing, the D4 signal does nothing.
+The Nano takes power from the laptop USB cable. Tie together the grounds of the supply, Nano, both motor drivers, and both LED rings. Without the shared ground, the motor and LED control signals may not work reliably.
 
 Unplug the motor supply before you upload. A motor loading the USB port makes the upload fail.
 
@@ -200,7 +158,7 @@ Unplug the motor supply before you upload. A motor loading the USB port makes th
 
 ## 5. Software Design
 
-The software is divided into camera capture, machine learning, result filtering, communication, and robot control. Each component can be tested separately.
+The software is divided into camera capture, machine learning, Processing round gating, Arduino result voting, communication, and robot control. Each component can be tested separately.
 
 ```text
 Camera
@@ -209,9 +167,9 @@ Processing: crop and downsample two flag images
   ↓  OSC /wek/inputs, port 6448
 Wekinator: four-class KNN model
   ↓  OSC /wek/outputs and /Match-Result, port 12000
-Processing: round-state filtering and serial bridge
+Processing: Class 1 round gate and serial bridge
   ↓  USB serial, 9600 baud
-Arduino: input validation and robot control
+Arduino: 4 s placement, 2 s voting, confidence and robot control
 ```
 
 <a id="software-components"></a>
@@ -222,14 +180,18 @@ Arduino: input validation and robot control
 | --- | --- | --- |
 | Camera input | `Camera_to_Wekinator_40x30/Camera_to_Wekinator_40x30.pde` | Captures regions A and B and converts them into fixed-size RGB inputs |
 | Machine learning | `Wekinator FlagMatch AB.app` and `FlagMatch_AB_4Class/` | Stores the training data and KNN model and predicts the result for each flag pair |
-| Arduino bridge | `processing_osc_to_arduino/processing_osc_to_arduino.pde` | Receives classes and probabilities, manages each round, and sends one confirmed result through serial |
-| Robot control | `../Archive_Obsolete/RobotArm/RobotArm.ino` | Validates serial data and controls the Base, X, and Y servos |
+| Arduino bridge | `processing_osc_to_arduino/processing_osc_to_arduino.pde` | Arms each round from Class 1 and forwards live classes and probabilities through serial |
+| Robot control | `Arduino Code/Nano2_TentacleB_motor_test/Nano2_TentacleB_motor_test.ino` | Validates serial data and controls two stepper motors and two LED rings |
 
 The bridge without round-state filtering is stored in `processing_osc_to_arduino_backup/`. It can be used to test direct communication between Wekinator and Arduino.
 
 <a id="software-camera-input"></a>
 
 ### 5.2 Camera Input and Image Preprocessing
+
+![Processing camera-input setup](Image/11.jpg)
+
+*Figure 5.1. The Processing sketch captures two flag regions and sends 7,500 RGB values to Wekinator through OSC port 6448.*
 
 The camera view contains two horizontal capture regions:
 
@@ -256,10 +218,6 @@ Values 1–3,750 belong to region A, and values 3,751–7,500 belong to region B
 <a id="software-communication"></a>
 
 ### 5.3 Communication Interfaces
-
-![Processing camera-input setup](Image/11.jpg)
-
-*Figure 5.1. The Processing sketch captures two flag regions and sends 7,500 RGB values to Wekinator through OSC port 6448.*
 
 The camera sketch sends image data to Wekinator:
 
@@ -301,37 +259,43 @@ This represents Class 2, with a top probability of 0.7426 and a second-place pro
 
 Wekinator evaluates every camera frame. Small changes in lighting, position, or camera noise can make the predicted class switch between frames. Sending every prediction directly to Arduino could therefore trigger repeated or conflicting movements.
 
-The Processing bridge uses the following round-state sequence:
+Processing and Arduino divide the round-state sequence as follows:
 
 ```text
-Class 1 remains stable for 500 ms
+Processing: Class 1 remains stable for 500 ms
   ↓
-The next round is armed
+Processing sends 1,1.0000,0.0000 and arms the round
   ↓
 Class 2–4 is first detected
   ↓
-Wait 2 seconds for the player to place both flags
+Processing forwards live predictions every 100 ms
   ↓
-Record predictions for 2 seconds
+Arduino waits 4 seconds for flag placement
   ↓
-Select the most frequently detected class
+Arduino records Classes 2–4 for 2 seconds
   ↓
-Send one confirmed result
+Arduino selects the most frequently received class
   ↓
-Lock until Class 1 is detected again
+Arduino performs the thinking and result action
+  ↓
+Arduino sends DONE
+  ↓
+Processing waits for 3 seconds of stable Class 1 before re-arming
 ```
 
-During the two-second observation period, Processing counts the occurrences of Classes 2–4. The most frequently detected class becomes the final result. The bridge also averages the two highest probabilities from samples associated with that class.
+During the two-second observation period, Arduino counts the occurrences of Classes 2–4. The class with the most votes becomes the final result; if two classes have equal votes, the latest observed class wins the tie. Arduino also averages the transmitted top and second probabilities from samples associated with the winning class.
 
-After sending the result, the bridge ignores further predictions until Class 1 remains stable again. Removing both flags therefore ends the current round and enables the next one.
+Processing continues forwarding predictions while the round is active so Arduino can observe the changing result and detect a false trigger. If Class 1 persists for three seconds during placement, observation, or an unfinished action, Arduino cancels the round. After Arduino sends `DONE`, Processing waits for three seconds of stable Class 1, sends the reset command, and enables the next round.
 
 <a id="software-arduino"></a>
 
 ### 5.5 Arduino Command Handling
 
-Arduino validates each serial message before starting a movement. The confirmed class selects the final pointing action, while the difference between the two probability values controls the confidence-dependent thinking behaviour.
+Arduino validates every CSV message before using it. During the observation window, it votes on Classes 2–4 and averages the two transmitted probability values for the winning class. The winning class selects the final action.
 
-The current Arduino program also waits three seconds before moving. When this delay is used together with the two-second placement period and two-second observation period in Processing, the robot responds approximately seven seconds after the first non-empty prediction.
+The thinking behaviour is selected from the averaged top probability: above 0.8 is a direct result; 0.6–0.8 produces three eye laps; 0.4–0.6 produces five eye laps with a slow Motor 1 sway; and below 0.4 produces the unknown gesture without a final result action. The second probability is retained for logging but is not currently used to select the confidence range.
+
+From the first Class 2–4 prediction, the fixed decision period is approximately six seconds: four seconds for placement followed by two seconds of observation. Thinking and motor movements add variable time after that decision. The separate three-second Class 1 period is used to cancel a false trigger or re-arm the next round; it is not an extra delay before every result.
 
 <a id="machine-learning"></a>
 
