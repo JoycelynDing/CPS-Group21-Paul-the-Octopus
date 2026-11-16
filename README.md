@@ -103,11 +103,11 @@ The current hardware uses:
 
 ```mermaid
 flowchart LR
-  laptop[Laptop] -->|USB serial 9600| nano[Arduino Nano Every]
-  nano --> ring1[LED ring 1]
-  nano --> ring2[LED ring 2]
-  nano --> motor1[Motor 1]
-  nano --> motor2[Motor 2]
+  laptop[Laptop USB] -->|Serial 9600| nano[Arduino Nano Every]
+  nano -->|D7 D8 D9 D10| motor1[Motor 1 ULN2003 IN1-IN4]
+  nano -->|D3 D4 D5 D6| motor2[Motor 2 ULN2003 IN1-IN4]
+  nano -->|D11 DIN| ring1[LED ring 1, 12 LEDs]
+  nano -->|D13 DIN| ring2[LED ring 2, 12 LEDs]
 ```
 
 The laptop sends `2,0.9900,0.0100`. That is the class, the best chance, and the next chance.
@@ -118,24 +118,21 @@ The current firmware uses the highest probability directly. Above 0.8, it perfor
 
 The Nano reports its state through the same USB serial connection. Important messages include `WAITING_FOR_ARM`, `ARMED`, `PLACEMENT 4s`, `OBSERVING 2s`, `LOCKED`, `DECISION`, `DONE`, and `CANCELLED false trigger`. Processing uses `LOCKED` and `DONE` to coordinate the round gate.
 
+
 <a id="wiring"></a>
 
 ### 4.3 Wiring
 
-```mermaid
-flowchart LR
-  laptop[Laptop USB] -->|Serial 9600| nano[Arduino Nano Every]
-  nano -->|D7 D8 D9 D10| motor1[Motor 1 ULN2003 IN1-IN4]
-  nano -->|D3 D4 D5 D6| motor2[Motor 2 ULN2003 IN1-IN4]
-  nano -->|D11 DIN| ring1[LED ring 1, 12 LEDs]
-  nano -->|D13 DIN| ring2[LED ring 2, 12 LEDs]
-```
+<img src="Image/wiring-diagram.png" alt="Arduino Nano Every wiring diagram" width="50%">
+
+*Figure 4.1. Physical wiring for one Arduino Nano Every, two ULN2003 motor drivers, two stepper motors, and two 12-LED rings.*
 
 Motor 1 uses Nano pins D7, D8, D9, and D10 in ULN2003 IN1-to-IN4 order. Motor 2 uses D3, D4, D5, and D6. Each motor remains connected to its own ULN2003 motor socket; the driver VCC and GND connect to the external 5 V supply.
 
 LED ring 1 receives data on D11 and LED ring 2 receives data on D13. Each ring has 12 WS2812B LEDs. Connect each data wire to `DIN`, not `DOUT`. D13 is also connected to the Nano's onboard LED, so the onboard lamp may flicker when the second ring updates.
 
 The Nano communicates with Processing through its USB serial connection at 9600 baud. Keep Serial Monitor closed while the Processing bridge is running. Connect the Nano ground, both ULN2003 grounds, both LED grounds, and the external-supply ground together.
+
 
 <a id="power"></a>
 
