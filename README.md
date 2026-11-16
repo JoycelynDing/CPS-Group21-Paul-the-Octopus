@@ -24,7 +24,8 @@
   - [6.2 Training Data](#ml-training-data)
   - [6.3 KNN Model](#ml-model)
   - [6.4 Interpreting Class Probabilities](#ml-probabilities)
-  - [6.5 Limitations and Future Improvements](#ml-limitations)
+- [7. Final Outcome & Demonstration](#final)
+- [8 Limitations and Future Improvements](#ml-limitations)
 
 <a id="project-overview"></a>
 ## 1. Project Overview
@@ -391,9 +392,21 @@ The total number of examples in a class also does not guarantee that the class w
 
 Frame-level predictions are stabilised by Processing rather than by the model itself. See [Round-State Filtering](#software-round-filtering) for the complete timing and decision logic.
 
+
+<a id="final"></a>
+## 7. Final Outcome & Demonstration
+
+The final outcome is an interactive octopus robot inspired by Paul the Octopus. It combines a rounded head shell, LED eyes, articulated tentacles, and a blue display base. Together, these elements create a character that communicates its decisions through light and movement.
+
+The interaction begins when a user places two football flag cards in the camera’s left and right capture regions. The system allows four seconds for positioning, then collects classification results for two seconds. The most frequently received class determines the response: a left-side win, a right-side win, or a draw.
+
+The octopus expresses different levels of certainty through its LED eyes and motor movements. A high-confidence classification leads directly to the result action, while lower confidence produces a longer thinking sequence with eye animations and swaying movements. When confidence is too low, the robot displays an uncertain expression without performing a final result action. These behaviours give the classification process a visible personality.
+
+During development and demonstration, mechanical resistance limited the intended tentacle movements, and power-related difficulties affected operation. A simplified two-motor approach was developed around base rotation and a nodding movement to communicate the result. The prototype brought camera input, machine-learning classification, LED expressions, and motor control together in an interactive physical character.
+
 <a id="ml-limitations"></a>
 
-### 6.5 Limitations and Future Improvements
+## 8 Limitations and Future Improvements
 
 The model uses low-resolution RGB pixels, so lighting, reflections, shadows, background changes, and flag position can affect its output. It learns pixel similarity rather than flag identity, country information, or football rules.
 
