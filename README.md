@@ -214,7 +214,7 @@ The rotation is limited to approximately 180 degrees, allowing the tentacle to p
 
 The driven cog is mounted onto the central shaft using a push-fit friction connection. The circular rotating base plate is then connected to the cog using an offset locating pin, mechanically linking the two components so that they rotate together.
 
-![Base plate, Motor A, cog system and central vertical axle](Image/IMG-1246.jpg)
+![Base plate, Motor A, cog system and central vertical axle](Image/IMG_1246.jpeg)
 
 <a id="motor-and-gear-assembly"></a>
 
@@ -232,7 +232,7 @@ Motor and motor mount → Spool → Female tensioning component → Male tension
 The bearing mount supports the far end of the pulley assembly, keeping the shaft aligned and providing support as the spools rotate.
 As the two articulation motors are mounted onto the same rotating base, their entire pulley assemblies rotate with the tentacle when Motor A changes its direction.
 
-![Motor B and C pulley assemblies, showing the spool and tensioning arrangement](Image/IMG_1241.jpg)
+![Motor B and C pulley assemblies, showing the spool and tensioning arrangement](Image/IMG_1241.jpeg)
 
 <a id="robot-arm-structure"></a>
 
@@ -262,7 +262,7 @@ By separating the cable routes in this way, the lower section of the tentacle ca
 
 Both cable systems use a continuous length of line running between their respective spools.
 
-![Close-up of cable passing through the tentacle segments](Image/IMG_1238.jpg)
+![Close-up of cable passing through the tentacle segments](Image/IMG_1238.jpeg)
 
 <a id="tentacle-design-and-construction"></a>
 
@@ -278,8 +278,8 @@ Each segment has a defined pivot point, with the cable routing positioned close 
 
 The combination of the segmented structure and flexible tape joints allows the tentacle to bend progressively along its length rather than behaving as one rigid component.
 
-![Individual 3D-printed segment before assembly](Image/IMG_1249.jpg)
-![Close-up showing the Gorilla Tape joint between two segments](Image/IMG_1245.jpg)
+![Individual 3D-printed segment before assembly](Image/IMG_1249.jpeg)
+![Close-up showing the Gorilla Tape joint between two segments](Image/IMG_1245.jpeg)
 
 <a id="cable-actuation-and-tensioning"></a>
 
@@ -293,7 +293,7 @@ By tightening or loosening the mechanism, the distance between the two spool hol
 
 This provides a means of taking up slack in the cable and adjusting the pulley system before operation.
 
-![Micro-tensioning system](Image/IMG_1250.jpg)
+![Micro-tensioning system](Image/IMG_1250.jpeg)
 
 <a id="modifications-and-final-assembly"></a>
 
@@ -307,7 +307,7 @@ The upper circular mount supports the tentacle at the top of the rotational asse
 
 The combination of directional rotation and two separate bending movements allows the tentacles to produce a range of gestures and positions, giving the robot a more expressive and characterful response to its predictions.
 
-![Completed mechanical assembly](Image/IMG_1244.jpg)
+![Completed mechanical assembly](Image/IMG_1244.jpeg)
 
 ## 4. Fabrication and Prototyping
 
