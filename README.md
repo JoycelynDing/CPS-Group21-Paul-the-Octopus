@@ -8,6 +8,7 @@
 - [1. Project Overview](#project-overview)
 - [2. System Architecture](#system-architecture)
 - [3. Machenism](#machenism)
+  - [3.1 Fabrication and Prototyping](#fabrication-and-prototyping)
 - [4. Hardware and Arduino](#hardware-and-arduino)
   - [4.1 Components needed](#hardware-components)
   - [4.2 Arduino Code](#arduino-code)
@@ -75,6 +76,30 @@ One Arduino Nano Every converts the decision into LED expressions and motor move
 
 <a id="machenism"></a>
 ## 3. Machenism
+
+<a id="fabrication-and-prototyping"></a>
+
+### 3.1 Fabrication and Prototyping
+
+#### Head Shell Model File
+
+The octopus head shell was designed in Rhino and developed for 3D printing. Its rounded form establishes the character’s appearance, with particular attention given to integrating the LED eyes.
+
+#### Design Development
+
+The design progressed from character and proportion sketches to detailed studies of the eye covers, LED mounting rings, and wire-routing space. These drawings were then translated into the Rhino model shown below.
+
+| Initial head-shell concept | Dimensions and eye-component details |
+| :---: | :---: |
+| <img src="Image/head-shell-sketch-1.png" alt="Initial octopus head-shell concept sketch" width="100%"> | <img src="Image/head-shell-sketch-2.png" alt="Head-shell dimensions and eye-component sketch" width="100%"> |
+| **LED housing and eye-cover assembly** | **Rhino head-shell model** |
+| <img src="Image/led-housing-sketch.png" alt="LED housing and eye-cover assembly sketch" width="100%"> | <img src="Image/head-shell-rhino-model.png" alt="Octopus head-shell model in Rhino" width="100%"> |
+
+Dedicated LED housings were incorporated into the eye areas to position the LED components within the curved shell. The design considered the fit of the components, their alignment, and openings for routing the wires into the head.
+
+Separate eye covers were also designed and fabricated to fit over the LED housings. The head shell, LED mounting areas, and covers were developed together so that the eyes formed an integrated part of the character’s face.
+
+The Rhino model shown above is provided in the repository as [`OCTOPUS HEAD SHELL.3dm`](3D%20File/OCTOPUS%20HEAD%20SHELL.3dm).
 
 <a id="hardware-and-arduino"></a>
 
@@ -395,6 +420,8 @@ Frame-level predictions are stabilised by Processing rather than by the model it
 
 <a id="final"></a>
 ## 7. Final Outcome & Demonstration
+
+[Watch the final outcome demonstration (MP4)](Image/Outcome.mp4)
 
 The final outcome is an interactive octopus robot inspired by Paul the Octopus. It combines a rounded head shell, LED eyes, articulated tentacles, and a blue display base. Together, these elements create a character that communicates its decisions through light and movement.
 
