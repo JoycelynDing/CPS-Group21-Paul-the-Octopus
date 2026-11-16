@@ -2,29 +2,33 @@
 
 **CPS Group 21**
 
-![Paul the Octopus prototype](Image/paul-the-octopus-small.jpg)
+![Paul the Octopus demonstration](Image/Outcome-preview.gif)
 
 ## Table of Contents
 - [1. Project Overview](#project-overview)
 - [2. System Architecture](#system-architecture)
-- [3. Machenism](#machenism)
-- [4. Hardware and Arduino](#hardware-and-arduino)
-  - [4.1 Components needed](#hardware-components)
-  - [4.2 Arduino Code](#arduino-code)
-  - [4.3 Wiring](#wiring)
-  - [4.4 Power](#power)
-- [5. Software Design](#software-design)
-  - [5.1 Software Components](#software-components)
-  - [5.2 Camera Input and Image Preprocessing](#software-camera-input)
-  - [5.3 Communication Interfaces](#software-communication)
-  - [5.4 Round-State Filtering](#software-round-filtering)
-  - [5.5 Arduino Command Handling](#software-arduino)
-- [6. Machine Learning](#machine-learning)
-  - [6.1 Classification Task](#ml-task)
-  - [6.2 Training Data](#ml-training-data)
-  - [6.3 KNN Model](#ml-model)
-  - [6.4 Interpreting Class Probabilities](#ml-probabilities)
-  - [6.5 Limitations and Future Improvements](#ml-limitations)
+- [3. Mechanism](#mechanism)
+- [4. Fabrication and Prototyping](#fabrication-and-prototyping)
+  - [4.1 Head Shell Model File](#head-shell-model)
+  - [4.2 Tentacle Paper Prototype](#tentacle-paper-prototype)
+- [5. Hardware and Arduino](#hardware-and-arduino)
+  - [5.1 Components](#hardware-components)
+  - [5.2 Arduino Code](#arduino-code)
+  - [5.3 Wiring](#wiring)
+  - [5.4 Power](#power)
+- [6. Software Design](#software-design)
+  - [6.1 Software Components](#software-components)
+  - [6.2 Camera Input and Image Preprocessing](#software-camera-input)
+  - [6.3 Communication Interfaces](#software-communication)
+  - [6.4 Round-State Filtering](#software-round-filtering)
+  - [6.5 Arduino Command Handling](#software-arduino)
+- [7. Machine Learning](#machine-learning)
+  - [7.1 Classification Task](#ml-task)
+  - [7.2 Training Data](#ml-training-data)
+  - [7.3 KNN Model](#ml-model)
+  - [7.4 Interpreting Class Probabilities](#ml-probabilities)
+- [8. Final Outcome & Demonstration](#final)
+- [9. Limitations and Future Improvements](#ml-limitations)
 
 <a id="project-overview"></a>
 
@@ -261,9 +265,47 @@ The combination of directional rotation and two separate bending movements allow
 [INSERT IMAGE: Completed mechanical assembly, preferably with all three motors visible]
 [INSERT IMAGE: Completed robot showing both tentacles]
 
+<a id="fabrication-and-prototyping"></a>
+
+## 4. Fabrication and Prototyping
+
+<a id="head-shell-model"></a>
+
+### 4.1 Head Shell Model File
+
+The octopus head shell was designed in Rhino and developed for 3D printing. Its rounded form establishes the character’s appearance, with particular attention given to integrating the LED eyes.
+
+#### Design Development
+
+The design progressed from character and proportion sketches to detailed studies of the eye covers, LED mounting rings, and wire-routing space. These drawings were then translated into the Rhino model shown below.
+
+| Initial head-shell concept | Dimensions and eye-component details |
+| :---: | :---: |
+| <img src="Image/head-shell-sketch-1.png" alt="Initial octopus head-shell concept sketch" width="100%"> | <img src="Image/head-shell-sketch-2.png" alt="Head-shell dimensions and eye-component sketch" width="100%"> |
+| **LED housing and eye-cover assembly** | **Rhino head-shell model** |
+| <img src="Image/led-housing-sketch.png" alt="LED housing and eye-cover assembly sketch" width="100%"> | <img src="Image/head-shell-rhino-model.png" alt="Octopus head-shell model in Rhino" width="100%"> |
+
+Dedicated LED housings were incorporated into the eye areas to position the LED components within the curved shell. The design considered the fit of the components, their alignment, and openings for routing the wires into the head.
+
+Separate eye covers were also designed and fabricated to fit over the LED housings. The head shell, LED mounting areas, and covers were developed together so that the eyes formed an integrated part of the character’s face.
+
+The Rhino model shown above is provided in the repository as [`OCTOPUS HEAD SHELL.3dm`](3D%20File/OCTOPUS%20HEAD%20SHELL.3dm).
+
+<a id="tentacle-paper-prototype"></a>
+
+### 4.2 Tentacle Paper Prototype
+
+We created a paper prototype using a tentacle template from the reference material. By cutting, folding, and assembling the paper structure, we explored how the individual segments worked together. We then tested how pulling a cable caused the tentacle to bend and curl. This allowed us to understand the movement through a simple physical model before applying it to our robot.
+
+| Paper prototype movement test | Cable-pull bending test |
+| :---: | :---: |
+| <img src="Image/tentacle-paper-prototype-1.gif" alt="Tentacle paper prototype movement test" width="100%"> | <img src="Image/tentacle-paper-prototype-2.gif" alt="Tentacle cable-pull bending test" width="100%"> |
+
+Based on these observations, we modified the tentacle’s 3D model to incorporate the same actuation principle. The paper prototype helped us consider the relationship between the segment geometry, cable routing, and bending movement. It served as an initial test model that connected the reference research with the development of our own tentacle design.
+
 <a id="hardware-and-arduino"></a>
 
-## 4. Hardware and Arduino
+## 5. Hardware and Arduino
 
 The laptop sends one CSV line at a time to a single Arduino Nano Every through USB serial. The Nano controls both LED rings and both stepper motors; there is no second Arduino or board-to-board serial link in the current system.
 
@@ -273,7 +315,7 @@ Upload `Arduino Code/Nano2_TentacleB_motor_test/Nano2_TentacleB_motor_test.ino` 
 
 <a id="hardware-components"></a>
 
-### 4.1 Components
+### 5.1 Components
 
 The current hardware uses:
 
@@ -285,7 +327,7 @@ The current hardware uses:
 
 <a id="arduino-code"></a>
 
-### 4.2 Arduino Code
+### 5.2 Arduino Code
 
 ```mermaid
 flowchart LR
@@ -306,7 +348,7 @@ The Nano reports its state through the same USB serial connection. Important mes
 
 <a id="wiring"></a>
 
-### 4.3 Wiring
+### 5.3 Wiring
 
 ```mermaid
 flowchart LR
@@ -325,7 +367,7 @@ The Nano communicates with Processing through its USB serial connection at 9600 
 
 <a id="power"></a>
 
-### 4.4 Power
+### 5.4 Power
 
 ```mermaid
 flowchart TB
@@ -349,7 +391,7 @@ Unplug the motor supply before you upload. A motor loading the USB port makes th
 
 <a id="software-design"></a>
 
-## 5. Software Design
+## 6. Software Design
 
 The software is divided into camera capture, machine learning, Processing round gating, Arduino result voting, communication, and robot control. Each component can be tested separately.
 
@@ -367,7 +409,7 @@ Arduino: 4 s placement, 2 s voting, confidence and robot control
 
 <a id="software-components"></a>
 
-### 5.1 Software Components
+### 6.1 Software Components
 
 | Component | File | Responsibility |
 | --- | --- | --- |
@@ -380,11 +422,11 @@ The bridge without round-state filtering is stored in `processing_osc_to_arduino
 
 <a id="software-camera-input"></a>
 
-### 5.2 Camera Input and Image Preprocessing
+### 6.2 Camera Input and Image Preprocessing
 
 ![Processing camera-input setup](Image/11.jpg)
 
-*Figure 5.1. The Processing sketch captures two flag regions and sends 7,500 RGB values to Wekinator through OSC port 6448.*
+*Figure 6.1. The Processing sketch captures two flag regions and sends 7,500 RGB values to Wekinator through OSC port 6448.*
 
 The camera view contains two horizontal capture regions:
 
@@ -410,7 +452,7 @@ Values 1–3,750 belong to region A, and values 3,751–7,500 belong to region B
 
 <a id="software-communication"></a>
 
-### 5.3 Communication Interfaces
+### 6.3 Communication Interfaces
 
 The camera sketch sends image data to Wekinator:
 
@@ -422,7 +464,7 @@ Values: 7,500 floats
 
 ![Wekinator project and OSC input settings](Image/5.jpg)
 
-*Figure 5.2. The Wekinator project listens for camera input on port 6448 and runs the four-class model.*
+*Figure 6.2. The Wekinator project listens for camera input on port 6448 and runs the four-class model.*
 
 Wekinator returns the predicted class and class probabilities:
 
@@ -448,7 +490,7 @@ This represents Class 2, with a top probability of 0.7426 and a second-place pro
 
 <a id="software-round-filtering"></a>
 
-### 5.4 Round-State Filtering
+### 6.4 Round-State Filtering
 
 Wekinator evaluates every camera frame. Small changes in lighting, position, or camera noise can make the predicted class switch between frames. Sending every prediction directly to Arduino could therefore trigger repeated or conflicting movements.
 
@@ -482,7 +524,7 @@ Processing continues forwarding predictions while the round is active so Arduino
 
 <a id="software-arduino"></a>
 
-### 5.5 Arduino Command Handling
+### 6.5 Arduino Command Handling
 
 Arduino validates every CSV message before using it. During the observation window, it votes on Classes 2–4 and averages the two transmitted probability values for the winning class. The winning class selects the final action.
 
@@ -492,11 +534,11 @@ From the first Class 2–4 prediction, the fixed decision period is approximatel
 
 <a id="machine-learning"></a>
 
-## 6. Machine Learning
+## 7. Machine Learning
 
 <a id="ml-task"></a>
 
-### 6.1 Classification Task
+### 7.1 Classification Task
 
 The project uses a four-class classifier:
 
@@ -513,17 +555,17 @@ For matches with a winner, both left-right arrangements are recorded. If the win
 
 ![How the left-right classification structure supports unseen matchups](Image/2_half.jpg)
 
-*Figure 6.1. The same flag contributes to Class 2 or Class 3 depending on whether it appears on the left or right, allowing the model to infer previously unseen pairings.*
+*Figure 7.1. The same flag contributes to Class 2 or Class 3 depending on whether it appears on the left or right, allowing the model to infer previously unseen pairings.*
 
 <a id="ml-training-data"></a>
 
-### 6.2 Training Data
+### 7.2 Training Data
 
 Before collecting the full dataset, we trained a small demo model using a limited set of known matchups. We then tested it with a flag pairing that had not appeared in the demo training set. The model followed the expected left-right winner structure, confirming that the proposed image-classification approach was viable before full-scale data collection.
 
 ![Initial demo training and unseen-matchup test](Image/3.jpg)
 
-*Figure 6.2. The initial demo verified the camera input, class structure, and ability to generalise the winner direction to an unseen flag pairing.*
+*Figure 7.2. The initial demo verified the camera input, class structure, and ability to generalise the winner direction to an unseen flag pairing.*
 
 When `Start Recording` is active, every captured frame becomes an independent training example. Each recording session contains about 30 frames, with a possible difference of one or two frames because recording is stopped manually.
 
@@ -531,7 +573,7 @@ Using a similar number of frames for each matchup prevents one recorded matchup 
 
 ![Match records used to define the training labels](Image/4.jpg)
 
-*Figure 6.3. Match records were converted into left-win, right-win, and draw labels for the flag-pair training data.*
+*Figure 7.3. Match records were converted into left-win, right-win, and draw labels for the flag-pair training data.*
 
 The reduced dataset contains 2,370 examples:
 
@@ -554,7 +596,7 @@ Both flags should remain fully inside their capture regions.
 
 <a id="ml-model"></a>
 
-### 6.3 KNN Model
+### 7.3 KNN Model
 
 Wekinator uses a K-Nearest Neighbours classifier:
 
@@ -570,7 +612,7 @@ The value of K can reduce the influence of one small cluster, but it cannot corr
 
 <a id="ml-probabilities"></a>
 
-### 6.4 Interpreting Class Probabilities
+### 7.4 Interpreting Class Probabilities
 
 Wekinator's class probabilities are based on the labels of nearby KNN examples. They are not calibrated probabilities and should not be interpreted as the real-world chance of a team winning.
 
@@ -580,9 +622,23 @@ The total number of examples in a class also does not guarantee that the class w
 
 Frame-level predictions are stabilised by Processing rather than by the model itself. See [Round-State Filtering](#software-round-filtering) for the complete timing and decision logic.
 
+<a id="final"></a>
+
+## 8. Final Outcome & Demonstration
+
+[Watch the final outcome demonstration (MP4)](Image/Outcome.mp4)
+
+The final outcome is an interactive octopus robot inspired by Paul the Octopus. It combines a rounded head shell, LED eyes, articulated tentacles, and a blue display base. Together, these elements create a character that communicates its decisions through light and movement.
+
+The interaction begins when a user places two football flag cards in the camera’s left and right capture regions. The system allows four seconds for positioning, then collects classification results for two seconds. The most frequently received class determines the response: a left-side win, a right-side win, or a draw.
+
+The octopus expresses different levels of certainty through its LED eyes and motor movements. A high-confidence classification leads directly to the result action, while lower confidence produces a longer thinking sequence with eye animations and swaying movements. When confidence is too low, the robot displays an uncertain expression without performing a final result action. These behaviours give the classification process a visible personality.
+
+During development and demonstration, mechanical resistance limited the intended tentacle movements, and power-related difficulties affected operation. A simplified two-motor approach was developed around base rotation and a nodding movement to communicate the result. The prototype brought camera input, machine-learning classification, LED expressions, and motor control together in an interactive physical character.
+
 <a id="ml-limitations"></a>
 
-### 6.5 Limitations and Future Improvements
+## 9. Limitations and Future Improvements
 
 The model uses low-resolution RGB pixels, so lighting, reflections, shadows, background changes, and flag position can affect its output. It learns pixel similarity rather than flag identity, country information, or football rules.
 
