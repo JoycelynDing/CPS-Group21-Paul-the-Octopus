@@ -4,8 +4,6 @@
 
 ![Paul the Octopus demonstration](Image/Outcome-preview.gif)
 
-# Paul the Octopus
-
 
 ## Table of Contents
 - [1. Project Overview](#project-overview)
