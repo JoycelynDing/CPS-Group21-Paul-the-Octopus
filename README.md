@@ -8,7 +8,6 @@
 - [1. Project Overview](#project-overview)
 - [2. System Architecture](#system-architecture)
 - [3. Machenism](#machenism)
-  - [3.1 Fabrication and Prototyping](#fabrication-and-prototyping)
 - [4. Hardware and Arduino](#hardware-and-arduino)
   - [4.1 Components needed](#hardware-components)
   - [4.2 Arduino Code](#arduino-code)
@@ -25,11 +24,50 @@
   - [6.2 Training Data](#ml-training-data)
   - [6.3 KNN Model](#ml-model)
   - [6.4 Interpreting Class Probabilities](#ml-probabilities)
-- [7. Final Outcome & Demonstration](#final)
-- [8 Limitations and Future Improvements](#ml-limitations)
+  - [6.5 Limitations and Future Improvements](#ml-limitations)
 
 <a id="project-overview"></a>
+
 ## 1. Project Overview
+
+### 1.1 Inspiration
+
+Our project has been heavily influenced by the infamous Paul the Octopus. Paul was a common octopus who became internationally renowned during the 2010 FIFA World Cup in South Africa for his rather impressive ability to predict the outcomes of football matches.
+
+His predictions were made by presenting him with two boxes of food, each marked with the flag of one of the competing nations. Paul would then move towards one of the boxes, with his choice representing his prediction for the winning team. By the end of the tournament, Paul had successfully predicted all eight matches he was asked to forecast, earning himself worldwide recognition (and probably a fair amount of resentment from the losing nations).
+
+Our project for CPS is an attempt to revive Paul in all his former glory, bringing his questionable yet seemingly remarkable predictive abilities into the world of robotics and machine learning.
+
+### 1.2 Project Concept
+
+The idea is to recreate Paul's prediction system using a combination of computer vision, machine learning, electronics and mechanical engineering. Instead of choosing between two boxes of food, our robotic octopus is presented with two national flags, which it then uses to predict the outcome of a football match.
+
+The flags are captured using a camera and processed through Wekinator, where a machine-learning model attempts to classify the pairing into one of four possible outcomes:
+
+- Class 1 – Empty board / no flags detected
+- Class 2 – Flag A beats Flag B
+- Class 3 – Flag B beats Flag A
+- Class 4 – Draw
+
+### 1.3 System Operation
+
+The system is broken down into three main stages:
+
+#### 1.3.1 Input and Prediction
+
+Once the two flags have been presented, a camera captures the images and sends them into Processing. The images are cropped, resized and converted into RGB pixel data before being transferred to Wekinator. Here, a K-Nearest Neighbours (KNN) model compares the input against its trained dataset and produces a prediction based on the two flags presented.
+
+#### 1.3.2 Decision Making
+
+The predicted result and its associated probabilities are then passed back through Processing and communicated to an Arduino Nano Every. The Arduino monitors the incoming predictions over a timed period, allowing it to filter out changes between individual predictions before settling on a final result.
+
+#### 1.3.3 Mechanical Response
+
+Once a result has been established, the Arduino controls the LED eyes and stepper motors, which in turn operate the two mechanical tentacles. These movements, alongside the LED expressions, are used to communicate the outcome and give Paul a little bit of personality. Depending on the prediction and its associated probability, the robot will produce different movements, ranging from a confident indication of a winner to a more uncertain response.
+
+### 1.4 Project Aim
+
+Ultimately, the aim is to create an interactive robotic character that combines machine learning with physical movement, recreating the experience of asking Paul the Octopus to predict the outcome of a football match.
 
 <a id="system-architecture"></a>
 
@@ -74,32 +112,154 @@ One Arduino Nano Every converts the decision into LED expressions and motor move
 | Arduino | Times flag placement, votes on the result, and converts confidence into behaviour | [Arduino Command Handling](#software-arduino) |
 | LEDs and motors | Express thinking and perform the two-motor result action | [Hardware and Arduino](#hardware-and-arduino) |
 
-<a id="machenism"></a>
-## 3. Machenism
+<a id="mechanism"></a>
 
-<a id="fabrication-and-prototyping"></a>
+## 3. Mechanism
 
-### 3.1 Fabrication and Prototyping
+### 3.1 Mechanical Overview
 
-#### Head Shell Model File
+The mechanical system consists of six stepper motors in total, with three motors controlling each arm. Both arms use an identical mechanism, mirrored to create a duplicated system on either side of the robot.
 
-The octopus head shell was designed in Rhino and developed for 3D printing. Its rounded form establishes the character’s appearance, with particular attention given to integrating the LED eyes.
+Each arm has three separate movements, controlled by its own motor:
 
-#### Design Development
+- Motor A – Directional rotation: Controls the horizontal direction in which the tentacle points.
+- Motor B – Main tentacle articulation: Controls the bending movement of the first two thirds of the tentacle.
+- Motor C – Tip articulation: Controls the bending movement of the final third of the tentacle independently of the lower section.
 
-The design progressed from character and proportion sketches to detailed studies of the eye covers, LED mounting rings, and wire-routing space. These drawings were then translated into the Rhino model shown below.
+By combining these three movements, each tentacle can rotate to face a particular direction, bend into different positions and produce more expressive gestures.
+The mechanism is designed around a rotating central assembly, with the three motors and their associated drive systems mounted onto a circular rotating base. This allows the entire assembly to rotate together while maintaining the positioning of the individual motor and pulley systems.
 
-| Initial head-shell concept | Dimensions and eye-component details |
-| :---: | :---: |
-| <img src="Image/head-shell-sketch-1.png" alt="Initial octopus head-shell concept sketch" width="100%"> | <img src="Image/head-shell-sketch-2.png" alt="Head-shell dimensions and eye-component sketch" width="100%"> |
-| **LED housing and eye-cover assembly** | **Rhino head-shell model** |
-| <img src="Image/led-housing-sketch.png" alt="LED housing and eye-cover assembly sketch" width="100%"> | <img src="Image/head-shell-rhino-model.png" alt="Octopus head-shell model in Rhino" width="100%"> |
+### 3.2 Component List
 
-Dedicated LED housings were incorporated into the eye areas to position the LED components within the curved shell. The design considered the fit of the components, their alignment, and openings for routing the wires into the head.
+Each arm consists of the following main components:
 
-Separate eye covers were also designed and fabricated to fit over the LED housings. The head shell, LED mounting areas, and covers were developed together so that the eyes formed an integrated part of the character’s face.
+| Component | Quantity |
+|---|:---:|
+| Base plate | 1 |
+| Flanged block bearing mount | 1 |
+| Stepper motors | 3 |
+| Motor mounts | 3 |
+| Motor-to-cog coupler | 1 |
+| Drive cogs | 2 |
+| Circular rotating base plate | 1 |
+| Central vertical axle | 1 |
+| Hollow vertical tube | 1 |
+| Rod coupler | 1 |
+| Grub screws | 2 |
+| Manual micro-tensioning systems | 2 |
+| Pulley spools | 4 |
+| Pulley bearing mounts | 2 |
+| Pulley shafts | 2 |
+| Cable systems | 2 |
+| Segmented 3D-printed tentacle | 1 |
+| Bearings | 5 |
+| Upper circular tentacle mount | 1 |
+| Upper structural plate | 1 |
+| Pillow block bearing mounts | 2 |
 
-The Rhino model shown above is provided in the repository as [`OCTOPUS HEAD SHELL.3dm`](3D%20File/OCTOPUS%20HEAD%20SHELL.3dm).
+### 3.3 Base and Rotational Assembly
+
+The mechanism begins with the base plate, onto which a flanged block bearing mount is fixed. This provides the main support and bearing point for the vertical rotational assembly.
+
+Motor A is mounted onto the base plate with its axle positioned vertically. The motor drives a cog system which transfers its rotational movement to a larger vertical axle. This axle supports the circular rotating base plate, onto which the remaining two motors and their associated pulley systems are mounted.
+
+As Motor A turns, the cog system rotates the central axle and, consequently, the entire upper assembly. This includes Motors B and C, their pulley systems and the tentacle mounted above. By rotating the complete assembly together, the tentacle can change its pointing direction without interfering with the cable mechanisms controlling its articulation.
+
+The rotation is limited to approximately 180 degrees, allowing the tentacle to point in different directions while remaining within the intended movement range.
+
+#### Drive connection
+
+The driven cog is mounted onto the central shaft using a push-fit friction connection. The circular rotating base plate is then connected to the cog using an offset locating pin, mechanically linking the two components so that they rotate together.
+
+[INSERT IMAGE: Base plate, Motor A, cog system and central vertical axle]
+
+### 3.4 Motor and Gear Assembly
+
+Motor A provides the directional movement of the tentacle, while Motors B and C are responsible for its bending.
+Both articulation motors are mounted horizontally onto the circular rotating base plate. They operate through separate pulley systems which pull the cables running through the tentacle.
+
+The pulley assemblies use the same basic arrangement, consisting of a motor and motor mount, two spool holders, a manual micro-tensioning mechanism and an end bearing mount with a supporting shaft.
+
+#### The general arrangement is:
+
+[Insert explode diagram if possible]
+
+Motor and motor mount → Spool → Female tensioning component → Male tensioning component → Spool → Bearing mount
+
+The bearing mount supports the far end of the pulley assembly, keeping the shaft aligned and providing support as the spools rotate.
+As the two articulation motors are mounted onto the same rotating base, their entire pulley assemblies rotate with the tentacle when Motor A changes its direction.
+
+[INSERT IMAGE: Motor B and C pulley assemblies, showing the spool and tensioning arrangement]
+
+### 3.5 Robot Arm Structure
+
+The two articulation motors operate on different sections of the tentacle. Although they use the same general pulley arrangement, their cables follow different routes through the structure.
+
+#### Motor B – Main tentacle articulation
+
+Motor B controls the first two thirds of the tentacle.
+
+Its cable is wound around the first spool, with several turns to help prevent slipping. From there, it travels through the hollow central vertical tube and into the base of the tentacle.
+
+The cable is routed through the outer holes in the segmented structure, travelling up to approximately two thirds of the tentacle's length. At this point, it passes across to the opposite side and returns down through the structure and central tube, eventually connecting to the second spool.
+
+This arrangement allows Motor B to pull the cable and bend the main section of the tentacle.
+
+#### Motor C – Independent tip articulation
+
+Motor C controls the final third of the tentacle, allowing the tip to bend independently of the main section.
+
+Its cable follows a similar route through the central vertical tube and into the tentacle. However, rather than travelling through the outer holes from the base, it initially follows the central route up the tentacle.
+
+At approximately one third from the tip, the cable moves out towards the outer holes and continues up to the end of the tentacle before returning down the opposite side and back through the central tube to its second spool.
+
+By separating the cable routes in this way, the lower section of the tentacle can bend without introducing unwanted movement or tension into the cable controlling the upper section.
+
+Both cable systems use a continuous length of line running between their respective spools.
+
+[INSERT IMAGE: Annotated side view showing Motor B and Motor C cable routes]
+[INSERT IMAGE: Close-up of cable passing through the tentacle segments]
+
+### 3.6 Tentacle Design and Construction
+
+The tentacles were designed as segmented structures and manufactured using 3D printing.
+
+Each segment was split down the middle before printing. During assembly, flexible Gorilla Tape was sandwiched between the two halves of adjacent segments, creating a flexible joint which allowed each segment to pivot relative to the next.
+
+This provided a simple way of introducing articulation throughout the tentacle without requiring individual mechanical hinges or additional connecting hardware.
+
+Each segment has a defined pivot point, with the cable routing positioned close to this point. Keeping the cable close to the pivot minimises unwanted cable displacement as the segments rotate, helping to maintain consistent tension throughout the bending movement.
+
+The combination of the segmented structure and flexible tape joints allows the tentacle to bend progressively along its length rather than behaving as one rigid component.
+
+[INSERT IMAGE: Individual 3D-printed segment before assembly]
+[INSERT IMAGE: Close-up showing the Gorilla Tape joint between two segments]
+[INSERT IMAGE: Fully assembled segmented tentacle]
+
+### 3.7 Cable Actuation and Tensioning
+
+Each articulation motor uses a manual micro-tensioning system to adjust the tension of its cable.
+
+The system consists of two interlocking components, referred to as the female and male tensioning parts. These slot together around a threaded shaft, with a grub screw used to secure the adjustment.
+
+By tightening or loosening the mechanism, the distance between the two spool holders can be adjusted. Moving the spools apart increases the tension in the connecting cable, while allowing them to move closer together reduces it.
+
+This provides a means of taking up slack in the cable and adjusting the pulley system before operation.
+
+[INSERT IMAGE: Micro-tensioning system, showing both components and grub screw]
+
+### 3.8 Modifications and Final Assembly
+
+Once assembled, the three motors work together to produce the movement of each tentacle.
+
+Motor A rotates the entire assembly to control the direction in which the tentacle points. Motors B and C operate their respective cable systems to control the bending of the main body and the independent tip.
+
+The upper circular mount supports the tentacle at the top of the rotational assembly, allowing the tentacle to move with the central axle and remain aligned with the underlying drive system.
+
+The combination of directional rotation and two separate bending movements allows the tentacles to produce a range of gestures and positions, giving the robot a more expressive and characterful response to its predictions.
+
+[INSERT IMAGE: Completed mechanical assembly, preferably with all three motors visible]
+[INSERT IMAGE: Completed robot showing both tentacles]
 
 <a id="hardware-and-arduino"></a>
 
@@ -129,11 +289,11 @@ The current hardware uses:
 
 ```mermaid
 flowchart LR
-  laptop[Laptop USB] -->|Serial 9600| nano[Arduino Nano Every]
-  nano -->|D7 D8 D9 D10| motor1[Motor 1 ULN2003 IN1-IN4]
-  nano -->|D3 D4 D5 D6| motor2[Motor 2 ULN2003 IN1-IN4]
-  nano -->|D11 DIN| ring1[LED ring 1, 12 LEDs]
-  nano -->|D13 DIN| ring2[LED ring 2, 12 LEDs]
+  laptop[Laptop] -->|USB serial 9600| nano[Arduino Nano Every]
+  nano --> ring1[LED ring 1]
+  nano --> ring2[LED ring 2]
+  nano --> motor1[Motor 1]
+  nano --> motor2[Motor 2]
 ```
 
 The laptop sends `2,0.9900,0.0100`. That is the class, the best chance, and the next chance.
@@ -144,21 +304,24 @@ The current firmware uses the highest probability directly. Above 0.8, it perfor
 
 The Nano reports its state through the same USB serial connection. Important messages include `WAITING_FOR_ARM`, `ARMED`, `PLACEMENT 4s`, `OBSERVING 2s`, `LOCKED`, `DECISION`, `DONE`, and `CANCELLED false trigger`. Processing uses `LOCKED` and `DONE` to coordinate the round gate.
 
-
 <a id="wiring"></a>
 
 ### 4.3 Wiring
 
-<img src="Image/wiring-diagram.png" alt="Arduino Nano Every wiring diagram" width="50%">
-
-*Figure 4.1. Physical wiring for one Arduino Nano Every, two ULN2003 motor drivers, two stepper motors, and two 12-LED rings.*
+```mermaid
+flowchart LR
+  laptop[Laptop USB] -->|Serial 9600| nano[Arduino Nano Every]
+  nano -->|D7 D8 D9 D10| motor1[Motor 1 ULN2003 IN1-IN4]
+  nano -->|D3 D4 D5 D6| motor2[Motor 2 ULN2003 IN1-IN4]
+  nano -->|D11 DIN| ring1[LED ring 1, 12 LEDs]
+  nano -->|D13 DIN| ring2[LED ring 2, 12 LEDs]
+```
 
 Motor 1 uses Nano pins D7, D8, D9, and D10 in ULN2003 IN1-to-IN4 order. Motor 2 uses D3, D4, D5, and D6. Each motor remains connected to its own ULN2003 motor socket; the driver VCC and GND connect to the external 5 V supply.
 
 LED ring 1 receives data on D11 and LED ring 2 receives data on D13. Each ring has 12 WS2812B LEDs. Connect each data wire to `DIN`, not `DOUT`. D13 is also connected to the Nano's onboard LED, so the onboard lamp may flicker when the second ring updates.
 
 The Nano communicates with Processing through its USB serial connection at 9600 baud. Keep Serial Monitor closed while the Processing bridge is running. Connect the Nano ground, both ULN2003 grounds, both LED grounds, and the external-supply ground together.
-
 
 <a id="power"></a>
 
@@ -417,23 +580,9 @@ The total number of examples in a class also does not guarantee that the class w
 
 Frame-level predictions are stabilised by Processing rather than by the model itself. See [Round-State Filtering](#software-round-filtering) for the complete timing and decision logic.
 
-
-<a id="final"></a>
-## 7. Final Outcome & Demonstration
-
-[Watch the final outcome demonstration (MP4)](Image/Outcome.mp4)
-
-The final outcome is an interactive octopus robot inspired by Paul the Octopus. It combines a rounded head shell, LED eyes, articulated tentacles, and a blue display base. Together, these elements create a character that communicates its decisions through light and movement.
-
-The interaction begins when a user places two football flag cards in the camera’s left and right capture regions. The system allows four seconds for positioning, then collects classification results for two seconds. The most frequently received class determines the response: a left-side win, a right-side win, or a draw.
-
-The octopus expresses different levels of certainty through its LED eyes and motor movements. A high-confidence classification leads directly to the result action, while lower confidence produces a longer thinking sequence with eye animations and swaying movements. When confidence is too low, the robot displays an uncertain expression without performing a final result action. These behaviours give the classification process a visible personality.
-
-During development and demonstration, mechanical resistance limited the intended tentacle movements, and power-related difficulties affected operation. A simplified two-motor approach was developed around base rotation and a nodding movement to communicate the result. The prototype brought camera input, machine-learning classification, LED expressions, and motor control together in an interactive physical character.
-
 <a id="ml-limitations"></a>
 
-## 8 Limitations and Future Improvements
+### 6.5 Limitations and Future Improvements
 
 The model uses low-resolution RGB pixels, so lighting, reflections, shadows, background changes, and flag position can affect its output. It learns pixel similarity rather than flag identity, country information, or football rules.
 
