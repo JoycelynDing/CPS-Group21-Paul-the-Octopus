@@ -4,18 +4,18 @@
 
 ![Paul the Octopus demonstration](Image/Outcome-preview.gif)
 
-## Table of Contents
-- [1. Project Overview](#project-overview)
-- [2. System Architecture](#system-architecture)
-- [3. Mechanism](#mechanism)
 # Paul the Octopus
 
-**CPS Group 21**
-
-![Paul the Octopus prototype](Image/paul-the-octopus-small.jpg)
 
 ## Table of Contents
 - [1. Project Overview](#project-overview)
+  - [1.1 Inspiration](#inspiration)
+  - [1.2 Project Concept](#inspiration)
+  - [1.3 System Operation](#system_operation)
+    - [1.3.1 Input and Prediction](#input_and_prediction)
+    - [1.3.2 Decision Making](#decision_making)
+    - [1.3.3 Mechanical Response](#mechanical_response)
+  - [1.4 Project Aim](#project_aim)
 - [2. System Architecture](#system-architecture)
 - [3. Mechanism](#mechanism)
   - [3.1 Mechanical Overview](#mechanical-overview)
@@ -55,6 +55,8 @@
 
 ## 1. Project Overview
 
+<a id="inspiration"></a>
+
 ### 1.1 Inspiration
 
 Our project has been heavily influenced by the infamous Paul the Octopus. Paul was a common octopus who became internationally renowned during the 2010 FIFA World Cup in South Africa for his rather impressive ability to predict the outcomes of football matches.
@@ -62,6 +64,8 @@ Our project has been heavily influenced by the infamous Paul the Octopus. Paul w
 His predictions were made by presenting him with two boxes of food, each marked with the flag of one of the competing nations. Paul would then move towards one of the boxes, with his choice representing his prediction for the winning team. By the end of the tournament, Paul had successfully predicted all eight matches he was asked to forecast, earning himself worldwide recognition (and probably a fair amount of resentment from the losing nations).
 
 Our project for CPS is an attempt to revive Paul in all his former glory, bringing his questionable yet seemingly remarkable predictive abilities into the world of robotics and machine learning.
+
+<a id="project_concept"></a>
 
 ### 1.2 Project Concept
 
@@ -74,21 +78,31 @@ The flags are captured using a camera and processed through Wekinator, where a m
 - Class 3 – Flag B beats Flag A
 - Class 4 – Draw
 
+<a id="system_operation"></a>
+
 ### 1.3 System Operation
 
 The system is broken down into three main stages:
+
+<a id="input_and_prediction"></a>
 
 #### 1.3.1 Input and Prediction
 
 Once the two flags have been presented, a camera captures the images and sends them into Processing. The images are cropped, resized and converted into RGB pixel data before being transferred to Wekinator. Here, a K-Nearest Neighbours (KNN) model compares the input against its trained dataset and produces a prediction based on the two flags presented.
 
+<a id="decision_making"></a>
+
 #### 1.3.2 Decision Making
 
 The predicted result and its associated probabilities are then passed back through Processing and communicated to an Arduino Nano Every. The Arduino monitors the incoming predictions over a timed period, allowing it to filter out changes between individual predictions before settling on a final result.
 
+<a id="mechanical_response"></a>
+
 #### 1.3.3 Mechanical Response
 
 Once a result has been established, the Arduino controls the LED eyes and stepper motors, which in turn operate the two mechanical tentacles. These movements, alongside the LED expressions, are used to communicate the outcome and give Paul a little bit of personality. Depending on the prediction and its associated probability, the robot will produce different movements, ranging from a confident indication of a winner to a more uncertain response.
+
+<a id="project_aim"></a>
 
 ### 1.4 Project Aim
 
