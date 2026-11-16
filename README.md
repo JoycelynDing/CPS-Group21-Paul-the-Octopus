@@ -214,7 +214,7 @@ The rotation is limited to approximately 180 degrees, allowing the tentacle to p
 
 The driven cog is mounted onto the central shaft using a push-fit friction connection. The circular rotating base plate is then connected to the cog using an offset locating pin, mechanically linking the two components so that they rotate together.
 
-![Base plate, Motor A, cog system and central vertical axle](IMG_1246.jpg)
+![Base plate, Motor A, cog system and central vertical axle](IMG-1246.jpg)
 
 <a id="motor-and-gear-assembly"></a>
 
