@@ -666,15 +666,24 @@ During development and demonstration, mechanical resistance limited the intended
 
 ## 9. Limitations and Future Improvements
 
-The model uses low-resolution RGB pixels, so lighting, reflections, shadows, background changes, and flag position can affect its output. It learns pixel similarity rather than flag identity, country information, or football rules.
+### 9.1 Mechanical Limitations
 
-The dataset is imbalanced, and evaluation currently relies on live observation. There is no separate test set or confusion matrix. The displayed probabilities are useful for interaction and motion control, but they are not calibrated confidence scores or real match predictions.
+The intended design uses six stepper motors, with three motors controlling each tentacle. The first motor rotates the base, allowing the tentacle to point in different horizontal directions. The second motor pulls a cable routed through most of the tentacle segments, controlling the overall bending direction. The third motor operates a separate cable connected to the tip segments, enabling the end of the tentacle to move independently.
 
-Possible improvements include:
+Together, these three motors would allow each tentacle to move in multiple directions while controlling its main body and tip separately. The prototype demonstrated that this actuation principle was possible. However, the 3D-printed tentacles were relatively heavy and produced considerable friction between their segments. Combined with the limited motor torque and power available, this prevented the tentacles from achieving the fast and expressive movements originally intended.
 
-- balancing the four classes;
-- reducing duplicate frames;
-- recording more lighting, distance, and position variations;
-- reserving some flag pairs for testing;
-- measuring errors with a confusion matrix;
-- adding colour normalisation or more stable visual features.
+Because of the available development time, only one tentacle was brought to a functional movement stage. The intended final system would apply the same three-motor mechanism to both tentacles, allowing each side to move independently.
+
+### 9.2 Electronics and Power Limitations
+
+An Arduino Nano Every was selected because the components had been ordered in advance, but additional hardware did not arrive before the final assembly period. A single Nano Every has limited digital I/O for controlling six four-wire stepper-motor drivers alongside the LED components.
+
+A larger Arduino board with more digital pins could control all six motors from one controller. Alternatively, two Nano Every boards could divide the motors between the two tentacles. In either arrangement, the motors would require adequately rated external power supplies and driver boards, with a shared ground between the controllers and motor-power system.
+
+### 9.3 Future Improvements
+
+Future development would focus on reducing the weight and resistance of the tentacles. The printed segments could use thinner walls, more hollow internal structures, lighter materials, or improved joints to reduce the force required from the motors. Alternative segmented structures, including finger-like joint mechanisms, could also provide smoother and more predictable bending.
+
+The electronics could be improved through a larger controller or a coordinated two-board system, more suitable motor drivers, and a dedicated power supply capable of operating all six motors reliably. With these improvements, both tentacles could achieve the intended multidirectional and independently segmented movement.
+
+Despite the mechanical, electrical, and time constraints, the prototype successfully demonstrated the core cable-driven actuation concept. It provides a functional foundation for a lighter, more powerful, and more expressive future version of the robot.
