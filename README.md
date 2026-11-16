@@ -155,6 +155,8 @@ One Arduino Nano Every converts the decision into LED expressions and motor move
 
 ## 3. Mechanism
 
+<a id="mechanical-overview"></a>
+
 ### 3.1 Mechanical Overview
 
 The mechanical system consists of six stepper motors in total, with three motors controlling each arm. Both arms use an identical mechanism, mirrored to create a duplicated system on either side of the robot.
@@ -167,6 +169,8 @@ Each arm has three separate movements, controlled by its own motor:
 
 By combining these three movements, each tentacle can rotate to face a particular direction, bend into different positions and produce more expressive gestures.
 The mechanism is designed around a rotating central assembly, with the three motors and their associated drive systems mounted onto a circular rotating base. This allows the entire assembly to rotate together while maintaining the positioning of the individual motor and pulley systems.
+
+<a id="component-list"></a>
 
 ### 3.2 Component List
 
@@ -196,6 +200,8 @@ Each arm consists of the following main components:
 | Upper structural plate | 1 |
 | Pillow block bearing mounts | 2 |
 
+<a id="base-and-rotational-assembly"></a>
+
 ### 3.3 Base and Rotational Assembly
 
 The mechanism begins with the base plate, onto which a flanged block bearing mount is fixed. This provides the main support and bearing point for the vertical rotational assembly.
@@ -210,7 +216,7 @@ The rotation is limited to approximately 180 degrees, allowing the tentacle to p
 
 The driven cog is mounted onto the central shaft using a push-fit friction connection. The circular rotating base plate is then connected to the cog using an offset locating pin, mechanically linking the two components so that they rotate together.
 
-[INSERT IMAGE: Base plate, Motor A, cog system and central vertical axle]
+<a id="motor-and-gear-assembly"></a>
 
 ### 3.4 Motor and Gear Assembly
 
@@ -221,14 +227,12 @@ The pulley assemblies use the same basic arrangement, consisting of a motor and 
 
 #### The general arrangement is:
 
-[Insert explode diagram if possible]
-
 Motor and motor mount → Spool → Female tensioning component → Male tensioning component → Spool → Bearing mount
 
 The bearing mount supports the far end of the pulley assembly, keeping the shaft aligned and providing support as the spools rotate.
 As the two articulation motors are mounted onto the same rotating base, their entire pulley assemblies rotate with the tentacle when Motor A changes its direction.
 
-[INSERT IMAGE: Motor B and C pulley assemblies, showing the spool and tensioning arrangement]
+<a id="robot-arm-structure"></a>
 
 ### 3.5 Robot Arm Structure
 
@@ -256,8 +260,7 @@ By separating the cable routes in this way, the lower section of the tentacle ca
 
 Both cable systems use a continuous length of line running between their respective spools.
 
-[INSERT IMAGE: Annotated side view showing Motor B and Motor C cable routes]
-[INSERT IMAGE: Close-up of cable passing through the tentacle segments]
+<a id="tentacle-design-and-construction"></a>
 
 ### 3.6 Tentacle Design and Construction
 
@@ -271,9 +274,7 @@ Each segment has a defined pivot point, with the cable routing positioned close 
 
 The combination of the segmented structure and flexible tape joints allows the tentacle to bend progressively along its length rather than behaving as one rigid component.
 
-[INSERT IMAGE: Individual 3D-printed segment before assembly]
-[INSERT IMAGE: Close-up showing the Gorilla Tape joint between two segments]
-[INSERT IMAGE: Fully assembled segmented tentacle]
+<a id="cable-actuation-and-tensioning"></a>
 
 ### 3.7 Cable Actuation and Tensioning
 
@@ -285,7 +286,7 @@ By tightening or loosening the mechanism, the distance between the two spool hol
 
 This provides a means of taking up slack in the cable and adjusting the pulley system before operation.
 
-[INSERT IMAGE: Micro-tensioning system, showing both components and grub screw]
+<a id="modifications-and-final-assembly"></a>
 
 ### 3.8 Modifications and Final Assembly
 
@@ -296,11 +297,6 @@ Motor A rotates the entire assembly to control the direction in which the tentac
 The upper circular mount supports the tentacle at the top of the rotational assembly, allowing the tentacle to move with the central axle and remain aligned with the underlying drive system.
 
 The combination of directional rotation and two separate bending movements allows the tentacles to produce a range of gestures and positions, giving the robot a more expressive and characterful response to its predictions.
-
-[INSERT IMAGE: Completed mechanical assembly, preferably with all three motors visible]
-[INSERT IMAGE: Completed robot showing both tentacles]
-
-<a id="fabrication-and-prototyping"></a>
 
 ## 4. Fabrication and Prototyping
 
