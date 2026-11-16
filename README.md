@@ -362,11 +362,11 @@ The current hardware uses:
 
 ```mermaid
 flowchart LR
-  laptop[Laptop] -->|USB serial 9600| nano[Arduino Nano Every]
-  nano --> ring1[LED ring 1]
-  nano --> ring2[LED ring 2]
-  nano --> motor1[Motor 1]
-  nano --> motor2[Motor 2]
+  laptop[Laptop USB] -->|Serial 9600| nano[Arduino Nano Every]
+  nano -->|D7 D8 D9 D10| motor1[Motor 1 ULN2003 IN1-IN4]
+  nano -->|D3 D4 D5 D6| motor2[Motor 2 ULN2003 IN1-IN4]
+  nano -->|D11 DIN| ring1[LED ring 1, 12 LEDs]
+  nano -->|D13 DIN| ring2[LED ring 2, 12 LEDs]
 ```
 
 The laptop sends `2,0.9900,0.0100`. That is the class, the best chance, and the next chance.
@@ -381,14 +381,9 @@ The Nano reports its state through the same USB serial connection. Important mes
 
 ### 5.3 Wiring
 
-```mermaid
-flowchart LR
-  laptop[Laptop USB] -->|Serial 9600| nano[Arduino Nano Every]
-  nano -->|D7 D8 D9 D10| motor1[Motor 1 ULN2003 IN1-IN4]
-  nano -->|D3 D4 D5 D6| motor2[Motor 2 ULN2003 IN1-IN4]
-  nano -->|D11 DIN| ring1[LED ring 1, 12 LEDs]
-  nano -->|D13 DIN| ring2[LED ring 2, 12 LEDs]
-```
+<img src="Image/wiring-diagram.png" alt="Arduino Nano Every wiring diagram" width="50%">
+
+*Figure 5.1. Physical wiring for one Arduino Nano Every, two ULN2003 motor drivers, two stepper motors, and two 12-LED rings.*
 
 Motor 1 uses Nano pins D7, D8, D9, and D10 in ULN2003 IN1-to-IN4 order. Motor 2 uses D3, D4, D5, and D6. Each motor remains connected to its own ULN2003 motor socket; the driver VCC and GND connect to the external 5 V supply.
 
